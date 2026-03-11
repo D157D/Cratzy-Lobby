@@ -28,9 +28,6 @@ public class Camera : MonoBehaviour
             if (TargetCamera == null) TargetCamera = UnityEngine.Camera.main;
         }
 
-        // Khóa chuột vào giữa màn hình để xoay camera
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
     }
 
     private void LateUpdate()
@@ -74,6 +71,10 @@ public class Camera : MonoBehaviour
         _localPlayer = playerTransform;
         _currentTarget = _localPlayer; 
         StopSpectating();
+
+        // Chỉ khóa chuột khi người chơi đã vào game và nhận nhân vật
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     public void OnPlayerDied()

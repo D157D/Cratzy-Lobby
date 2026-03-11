@@ -1,17 +1,19 @@
 using UnityEngine;
 using Fusion;
 
-namespace Cray_Lobby.Player
+namespace Crazy_Lobby.Player
 {
     public struct NetworkInputData : INetworkInput
     {
         public Vector2 Movement;
+        public Vector3 LookDirection;
         public NetworkButtons Buttons;
     }
 
     public enum InputButtons
     {
         Jump = 0,
+        DoubleJump = 1,
     }
 
     [RequireComponent(typeof(CharacterController))]
@@ -21,15 +23,30 @@ namespace Cray_Lobby.Player
         [SerializeField] private float _moveSpeed = 6f;
         [SerializeField] private float _jumpForce = 8f;
         [SerializeField] private float _gravity = -20f;
-
+        private Animator _animator;
         private CharacterController _cc;
 
         [Networked] private Vector3 NetworkVelocity { get; set; }
         private Vector3 _localVelocity;
+        private CharacterMovement _movement;
+        private CharacterAnimation _animation;
 
         private void Awake()
         {
             _cc = GetComponent<CharacterController>();
+            _animator = GetComponentInChildren<Animator>();
+            _animation = new CharacterAnimation(_animator);
+            _movement = new CharacterMovement(_cc, _animation, _moveSpeed, _jumpForce, _gravity);
+        }
+        
+
+        [System.Obsolete]
+        public override void Spawned()
+        {
+            if (Object.HasInputAuthority)
+            {
+                FindObjectOfType<Camera>()?.SetLocalPlayer(transform);
+            }
         }
 
         public override void FixedUpdateNetwork()
@@ -39,22 +56,9 @@ namespace Cray_Lobby.Player
                 Vector3 direction = new Vector3(data.Movement.x, 0, data.Movement.y).normalized;
                 Vector3 currentVel = NetworkVelocity;
 
-                if (_cc.isGrounded && currentVel.y < 0)
-                {
-                    currentVel.y = -2f;
-                }
-
-                currentVel.x = direction.x * _moveSpeed;
-                currentVel.z = direction.z * _moveSpeed;
-
-                if (data.Buttons.IsSet(InputButtons.Jump) && _cc.isGrounded)
-                {
-                    currentVel.y = _jumpForce;
-                }
-
-                currentVel.y += _gravity * Runner.DeltaTime;
-
-                _cc.Move(currentVel * Runner.DeltaTime);
+                // Use reusable movement logic
+                _movement.Move(direction, data.Buttons.IsSet(InputButtons.Jump), data.Buttons.IsSet(InputButtons.DoubleJump), ref currentVel, Runner.DeltaTime);
+                
                 NetworkVelocity = currentVel;
             }
         }
@@ -66,21 +70,27 @@ namespace Cray_Lobby.Player
             float h = Input.GetAxis("Horizontal");
             float v = Input.GetAxis("Vertical");
             bool jump = Input.GetButton("Jump");
+            bool doublejump = Input.GetButton("DoubleJump");
 
-            Vector3 direction = new Vector3(h, 0, v).normalized;
+            Vector3 direction;
+            // Tính hướng di chuyển dựa theo Camera
+            if (UnityEngine.Camera.main != null)
+            {
+                Transform camTransform = UnityEngine.Camera.main.transform;
+                Vector3 forward = Vector3.Scale(camTransform.forward, new Vector3(1, 0, 1)).normalized;
+                Vector3 right = Vector3.Scale(camTransform.right, new Vector3(1, 0, 1)).normalized;
+                direction = (forward * v + right * h).normalized;
+            }
+            else
+            {
+                direction = new Vector3(h, 0, v).normalized;
+            }
 
-            if (_cc.isGrounded && _localVelocity.y < 0)
-                _localVelocity.y = -2f;
-
-            _localVelocity.x = direction.x * _moveSpeed;
-            _localVelocity.z = direction.z * _moveSpeed;
-
-            if (jump && _cc.isGrounded)
-                _localVelocity.y = _jumpForce;
-
-            _localVelocity.y += _gravity * Time.deltaTime;
-
-            _cc.Move(_localVelocity * Time.deltaTime);
+            // Use reusable movement logic
+            _movement.Move(direction, jump, doublejump ,ref _localVelocity, Time.deltaTime);
+            
+            _movement.Rotate(transform, direction, Time.deltaTime);
+            _animation.UpdateMoveAnimation(direction);
         }
     }
 }

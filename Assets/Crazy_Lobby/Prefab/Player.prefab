@@ -11,9 +11,10 @@ GameObject:
   - component: {fileID: 2600062195958527592}
   - component: {fileID: 8815183515914142087}
   - component: {fileID: 7015528112418285328}
-  - component: {fileID: 2945902158953522117}
   - component: {fileID: 5758461863338740100}
-  - component: {fileID: 5886438304353244404}
+  - component: {fileID: -136467381510503303}
+  - component: {fileID: -5872967788948090295}
+  - component: {fileID: -1348177609146104739}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -89,18 +90,6 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 1, z: 0}
---- !u!114 &2945902158953522117
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3534587539486237955}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 82f5bb691887d5f47b96b3c3f194b684, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &5758461863338740100
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -118,10 +107,10 @@ MonoBehaviour:
   Flags: 262145
   NestedObjects: []
   NetworkedBehaviours:
-  - {fileID: 2945902158953522117}
-  - {fileID: 5886438304353244404}
+  - {fileID: -136467381510503303}
+  - {fileID: -5872967788948090295}
   ForceRemoteRenderTimeframe: 0
---- !u!114 &5886438304353244404
+--- !u!114 &-136467381510503303
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -130,14 +119,58 @@ MonoBehaviour:
   m_GameObject: {fileID: 3534587539486237955}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Script: {fileID: 11500000, guid: 378411a89480da345945c2f888327a2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _stateAuthorityChangeErrorCorrectionDelta: 0
-  SyncScale: 0
-  SyncParent: 0
-  _autoAOIOverride: 1
-  DisableSharedModeInterpolation: 0
+  gravity: -20
+  jumpImpulse: 8
+  acceleration: 10
+  braking: 10
+  maxSpeed: 2
+  rotationSpeed: 15
+--- !u!114 &-5872967788948090295
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3534587539486237955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82f5bb691887d5f47b96b3c3f194b684, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &-1348177609146104739
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3534587539486237955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  m_NotificationBehavior: 0
+  m_UIInputModule: {fileID: 0}
+  m_DeviceLostEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_DeviceRegainedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ControlsChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ActionEvents: []
+  m_NeverAutoSwitchControlSchemes: 0
+  m_DefaultControlScheme: 
+  m_DefaultActionMap: 
+  m_SplitScreenIndex: -1
+  m_Camera: {fileID: 0}
 --- !u!1001 &2363132926155832546
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -1,96 +1,169 @@
-using UnityEngine;
+using System;
+using System.Collections.Generic;
+using Crazy_Lobby.Player;
 using Fusion;
+using Fusion.Sockets;
+using UnityEngine;
+using UnityEngine.InputSystem;
 
-namespace Crazy_Lobby.Player
+public struct NetworkInputData : INetworkInput
 {
-    public struct NetworkInputData : INetworkInput
+    public Vector2 Movement;
+    public float CameraYaw;
+}
+[RequireComponent(typeof(NetworkCharacterController))]
+[RequireComponent(typeof(NetworkObject))]
+public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
+{
+    private NetworkCharacterController _ncc;
+    private CharacterAnimation _characterAnimation;
+    private Vector2 _localMoveInput; 
+
+    private void Awake()
     {
-        public Vector2 Movement;
-        public Vector3 LookDirection;
-        public NetworkButtons Buttons;
+        _ncc = GetComponent<NetworkCharacterController>();
+        _characterAnimation = new CharacterAnimation(GetComponentInChildren<Animator>());
     }
-
-    public enum InputButtons
+  
+    public override void Spawned()
     {
-        Jump = 0,
-        DoubleJump = 1,
-    }
-
-    [RequireComponent(typeof(CharacterController))]
-    public class PlayerController : NetworkBehaviour
-    {
-        [Header("Movement Settings")]
-        [SerializeField] private float _moveSpeed = 6f;
-        [SerializeField] private float _jumpForce = 8f;
-        [SerializeField] private float _gravity = -20f;
-        private Animator _animator;
-        private CharacterController _cc;
-
-        [Networked] private Vector3 NetworkVelocity { get; set; }
-        private Vector3 _localVelocity;
-        private CharacterMovement _movement;
-        private CharacterAnimation _animation;
-
-        private void Awake()
+        if (HasInputAuthority)
         {
-            _cc = GetComponent<CharacterController>();
-            _animator = GetComponentInChildren<Animator>();
-            _animation = new CharacterAnimation(_animator);
-            _movement = new CharacterMovement(_cc, _animation, _moveSpeed, _jumpForce, _gravity);
+            Runner.AddCallbacks(this);
+        }
+    }
+
+    public override void Despawned(NetworkRunner runner, bool hasState)
+    {
+        if (HasInputAuthority)
+        {
+            Runner.RemoveCallbacks(this);
+        }
+    }
+
+    public void OnMove(InputValue value)
+    {
+        _localMoveInput = value.Get<Vector2>();
+    }
+
+    public override void FixedUpdateNetwork()
+    {
+        if (GetInput(out NetworkInputData data))
+        {
+            Quaternion cameraRotation = Quaternion.Euler(0, data.CameraYaw, 0);
+            
+            Vector3 moveDirection = cameraRotation * new Vector3(data.Movement.x, 0, data.Movement.y);
+
+            _ncc.Move(moveDirection.normalized * Runner.DeltaTime * 5f);
+
+            if (moveDirection.sqrMagnitude > 0.01f)
+            {
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(moveDirection), Runner.DeltaTime * 10f);
+                _characterAnimation.UpdateMoveAnimation(moveDirection);
+            }        
+        }
+    }
+
+    public void OnInput(NetworkRunner runner, NetworkInput input)
+    {
+        var data = new NetworkInputData();
+        data.Movement = _localMoveInput;
+
+        if (UnityEngine.Camera.main != null)
+        {
+            data.CameraYaw = UnityEngine.Camera.main.transform.eulerAngles.y;
         }
         
+        input.Set(data); 
+    }
 
-        [System.Obsolete]
-        public override void Spawned()
-        {
-            if (Object.HasInputAuthority)
-            {
-                FindObjectOfType<Camera>()?.SetLocalPlayer(transform);
-            }
-        }
+    public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
+    {
+        throw new NotImplementedException();
+    }
 
-        public override void FixedUpdateNetwork()
-        {
-            if (GetInput(out NetworkInputData data))
-            {
-                Vector3 direction = new Vector3(data.Movement.x, 0, data.Movement.y).normalized;
-                Vector3 currentVel = NetworkVelocity;
+    public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
+    {
+        throw new NotImplementedException();
+    }
 
-                // Use reusable movement logic
-                _movement.Move(direction, data.Buttons.IsSet(InputButtons.Jump), data.Buttons.IsSet(InputButtons.DoubleJump), ref currentVel, Runner.DeltaTime);
-                
-                NetworkVelocity = currentVel;
-            }
-        }
+    public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
+    {
+        throw new NotImplementedException();
+    }
 
-        private void Update()
-        {
-            if (Object != null && Object.IsValid) return;
+    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
+    {
+        throw new NotImplementedException();
+    }
 
-            float h = Input.GetAxis("Horizontal");
-            float v = Input.GetAxis("Vertical");
-            bool jump = Input.GetButton("Jump");
-            bool doublejump = Input.GetButton("DoubleJump");
+    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
+    {
+        throw new NotImplementedException();
+    }
 
-            Vector3 direction;
-            // Tính hướng di chuyển dựa theo Camera
-            if (UnityEngine.Camera.main != null)
-            {
-                Transform camTransform = UnityEngine.Camera.main.transform;
-                Vector3 forward = Vector3.Scale(camTransform.forward, new Vector3(1, 0, 1)).normalized;
-                Vector3 right = Vector3.Scale(camTransform.right, new Vector3(1, 0, 1)).normalized;
-                direction = (forward * v + right * h).normalized;
-            }
-            else
-            {
-                direction = new Vector3(h, 0, v).normalized;
-            }
+    public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
+    {
+        throw new NotImplementedException();
+    }
 
-            // Use reusable movement logic
-            _movement.Move(direction, jump, doublejump ,ref _localVelocity, Time.deltaTime);
-            
-            _movement.Rotate(transform, direction, Time.deltaTime);
-            _animation.UpdateMoveAnimation(direction);
-        }
+    public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void OnConnectedToServer(NetworkRunner runner)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void OnSceneLoadDone(NetworkRunner runner)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void OnSceneLoadStart(NetworkRunner runner)
+    {
+        throw new NotImplementedException();
     }
 }

@@ -59,9 +59,13 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
             if (moveDirection.sqrMagnitude > 0.01f)
             {
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(moveDirection), Runner.DeltaTime * 10f);
-                _characterAnimation.UpdateMoveAnimation(moveDirection);
-            }        
+            }
         }
+    }
+
+    public override void Render()
+    {
+        _characterAnimation.UpdateMoveAnimation(_ncc.Velocity);
     }
 
     public void OnInput(NetworkRunner runner, NetworkInput input)

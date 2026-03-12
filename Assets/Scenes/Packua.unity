@@ -3815,7 +3815,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4cb5ebe722464bc4b868636e1e7c9468, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _player: {fileID: 5758461863338740100, guid: e6b4aa58fdbe5ce4f8f1ff315948afed, type: 3}
+  _player:
+    RawGuidValue: e6b4aa58fdbe5ce4f8f1ff315948afed
 --- !u!64 &840378098
 MeshCollider:
   m_ObjectHideFlags: 0

@@ -47,16 +47,16 @@ public class BackendManager : MonoBehaviour
         else { Destroy(gameObject); }
     }
 
-    public void Register(string username, string password)
+    public void Register(string username, string password, Action<bool, string> callback = null)
     {
-        StartCoroutine(RegisterRequest(username, password));
+        StartCoroutine(RegisterRequest(username, password, callback));
     }
-    public void Login(string username, string password)
+    public void Login(string username, string password, Action<bool, string> callback = null)
     {
-        StartCoroutine(LoginRequest(username, password));
+        StartCoroutine(LoginRequest(username, password, callback));
     }
 
-    IEnumerator RegisterRequest(string username, string password)
+    IEnumerator RegisterRequest(string username, string password, Action<bool, string> callback)
     {
         string url = baseUrl + "/Auth/register";
         
@@ -77,15 +77,21 @@ public class BackendManager : MonoBehaviour
             yield return req.SendWebRequest();
 
             if (req.result == UnityWebRequest.Result.Success)
+            {
                 Debug.Log("<color=green>ĐĂNG KÝ THÀNH CÔNG!</color>");
+                callback?.Invoke(true, "Đăng ký thành công!");
+            }
             else
+            {
                 Debug.Log("<color=red>ĐĂNG KÝ THẤT BẠI: " + req.error + "</color>");
+                callback?.Invoke(false, "Đăng ký thất bại: " + req.error);
+            }
         }
     }
 
 
 
-    IEnumerator LoginRequest(string username, string password)
+    IEnumerator LoginRequest(string username, string password, Action<bool, string> callback)
     {
         string url = baseUrl + "/Auth/login";
         Debug.Log("Đang gửi Login Request tới: " + url);
@@ -115,6 +121,8 @@ public class BackendManager : MonoBehaviour
                 
                 Debug.Log("<color=yellow>Token nhận được: " + currentToken + "</color>");
                 Debug.Log("<color=yellow>Player ID: " + loginResponse.playerId + "</color>");
+                
+                callback?.Invoke(true, "Đăng nhập thành công!");
             }
             else
             {
@@ -125,6 +133,8 @@ public class BackendManager : MonoBehaviour
                 {
                     Debug.LogError("Chi tiết lỗi từ Server: " + req.downloadHandler.text);
                 }
+                
+                callback?.Invoke(false, "Đăng nhập thất bại: " + req.error);
             }
         }
     }

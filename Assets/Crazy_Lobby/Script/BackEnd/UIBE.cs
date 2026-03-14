@@ -15,7 +15,10 @@ public class UIManager : MonoBehaviour
     public TMP_InputField loginPasswordInput;
     public Button LoginButton;
     
-     
+    [Header("Debug")]
+    public TextMeshProUGUI ResgiterDebug;
+    public TextMeshProUGUI LoginDebug;
+
     void Start()
     {
         RegisterButton.onClick.AddListener(OnRegisterButtonClicked);
@@ -37,22 +40,29 @@ public class UIManager : MonoBehaviour
         if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
         {
             Debug.LogWarning("Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.");
+            if (ResgiterDebug != null) ResgiterDebug.text = "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.";
             return;
         }
 
         if (username.Length < 5)
         {
             Debug.LogWarning("Tên đăng nhập phải có ít nhất 5 ký tự.");
+            if (ResgiterDebug != null) ResgiterDebug.text = "Tên đăng nhập phải có ít nhất 5 ký tự.";
             return;
         }
 
         if (!System.Text.RegularExpressions.Regex.IsMatch(username, "^[a-zA-Z0-9]+$"))
         {
             Debug.LogWarning("Tên đăng nhập không được chứa ký tự đặc biệt.");
+            if (ResgiterDebug != null) ResgiterDebug.text = "Tên đăng nhập không được chứa ký tự đặc biệt.";
             return;
         }
 
-        BackendManager.Instance.Register(username, password);
+        if (ResgiterDebug != null) ResgiterDebug.text = "Đang xử lý đăng ký...";
+        BackendManager.Instance.Register(username, password, (isSuccess, message) => 
+        {
+            if (ResgiterDebug != null) ResgiterDebug.text = message;
+        });
     }
 
     void OnLoginButtonClicked()
@@ -63,10 +73,15 @@ public class UIManager : MonoBehaviour
         if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
         {
             Debug.LogWarning("Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.");
+            if (LoginDebug != null) LoginDebug.text = "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.";
             return;
         }
 
-        BackendManager.Instance.Login(username, password);
+        if (LoginDebug != null) LoginDebug.text = "Đang xử lý đăng nhập...";
+        BackendManager.Instance.Login(username, password, (isSuccess, message) => 
+        {
+            if (LoginDebug != null) LoginDebug.text = message;
+        });
     }
 
     void HandleForcedLogout()

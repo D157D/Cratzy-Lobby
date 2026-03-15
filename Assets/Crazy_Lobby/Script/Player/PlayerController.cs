@@ -10,19 +10,28 @@ public struct NetworkInputData : INetworkInput
 {
     public Vector2 Movement;
     public float CameraYaw;
+    public NetworkBool Jump;
 }
 [RequireComponent(typeof(NetworkCharacterController))]
 [RequireComponent(typeof(NetworkObject))]
 public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 {
+    private float jumpForce = 10f;
+    public float maxSpeed = 10f; 
+    public float acceleration = 100f; 
+    public float braking = 100f; 
     private NetworkCharacterController _ncc;
     private CharacterAnimation _characterAnimation;
     private Vector2 _localMoveInput; 
+    private bool _jumpPressed;
 
     private void Awake()
     {
         _ncc = GetComponent<NetworkCharacterController>();
         _characterAnimation = new CharacterAnimation(GetComponentInChildren<Animator>());
+        _ncc.maxSpeed = maxSpeed;
+        _ncc.acceleration = acceleration;
+        _ncc.braking = braking;
     }
   
     public override void Spawned()
@@ -46,6 +55,11 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
         _localMoveInput = value.Get<Vector2>();
     }
 
+    public void OnJump(InputValue value)
+    {
+        if (value.isPressed) _jumpPressed = true;
+    }
+
     public override void FixedUpdateNetwork()
     {
         if (GetInput(out NetworkInputData data))
@@ -54,8 +68,14 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
             
             Vector3 moveDirection = cameraRotation * new Vector3(data.Movement.x, 0, data.Movement.y);
 
-            _ncc.Move(moveDirection.normalized * Runner.DeltaTime * 5f);
+            _ncc.Move(moveDirection);
 
+            if (data.Jump && _ncc.Grounded)
+            {
+                _ncc.Jump( true, jumpForce );
+                _characterAnimation.TriggerJump();
+            }
+            
             if (moveDirection.sqrMagnitude > 0.01f)
             {
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(moveDirection), Runner.DeltaTime * 10f);
@@ -65,7 +85,8 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 
     public override void Render()
     {
-        _characterAnimation.UpdateMoveAnimation(_ncc.Velocity);
+        _characterAnimation.UpdateMoveAnimation(_ncc.Velocity, maxSpeed);
+        _characterAnimation.UpdateJumpState(_ncc.Grounded, _ncc.Velocity.y, Time.deltaTime);
     }
 
     public void OnInput(NetworkRunner runner, NetworkInput input)
@@ -77,97 +98,83 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
         {
             data.CameraYaw = UnityEngine.Camera.main.transform.eulerAngles.y;
         }
-        
+
+        data.Jump = _jumpPressed;
+
         input.Set(data); 
+        _jumpPressed = false;
     }
 
     public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
     {
-        throw new NotImplementedException();
     }
 
     public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
     {
-        throw new NotImplementedException();
     }
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
-        throw new NotImplementedException();
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
     {
-        throw new NotImplementedException();
     }
 
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
     {
-        throw new NotImplementedException();
+        PlayerPrefs.Save();
     }
 
     public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
     {
-        throw new NotImplementedException();
     }
 
     public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token)
     {
-        throw new NotImplementedException();
     }
 
     public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason)
     {
-        throw new NotImplementedException();
     }
 
     public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message)
     {
-        throw new NotImplementedException();
     }
 
     public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data)
     {
-        throw new NotImplementedException();
     }
 
     public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress)
     {
-        throw new NotImplementedException();
     }
 
     public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input)
     {
-        throw new NotImplementedException();
     }
 
     public void OnConnectedToServer(NetworkRunner runner)
     {
-        throw new NotImplementedException();
     }
 
     public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
     {
-        throw new NotImplementedException();
     }
 
     public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data)
     {
-        throw new NotImplementedException();
     }
 
     public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken)
     {
-        throw new NotImplementedException();
     }
 
     public void OnSceneLoadDone(NetworkRunner runner)
     {
-        throw new NotImplementedException();
     }
 
     public void OnSceneLoadStart(NetworkRunner runner)
     {
-        throw new NotImplementedException();
     }
 }

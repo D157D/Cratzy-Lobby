@@ -45,13 +45,6 @@ public class EnemyPatrol : NetworkBehaviour
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null) player = playerObj.transform;
 
-        // Tắt NavMeshAgent trên các máy Client, chỉ cho phép Server/Host (State Authority) xử lý AI
-        if (!HasStateAuthority)
-        {
-            agent.enabled = false;
-            return;
-        }
-
         _ncc.maxSpeed = moveSpeed;
         _ncc.acceleration = acceleration;
         _ncc.braking = braking;
@@ -69,12 +62,15 @@ public class EnemyPatrol : NetworkBehaviour
         }
     }
 
+
     public override void FixedUpdateNetwork()
     {
         if (!HasStateAuthority) return;
 
         // Cập nhật vị trí NavMeshAgent theo vị trí thực tế của NetworkCharacterController
         agent.nextPosition = transform.position;
+
+        FindAndChaseClosestPlayer();
 
         Vector3 moveDirection = Vector3.zero;
 
@@ -150,6 +146,55 @@ public class EnemyPatrol : NetworkBehaviour
 
         // Uỷ quyền việc di chuyển và xoay người cho NetworkCharacterController
         _ncc.Move(moveDirection);
+    }
+
+    private void FindAndChaseClosestPlayer()
+    {
+        // Sử dụng OverlapSphere để tìm các đối tượng trong tầm nhìn
+        // Đây là cách hiệu quả hơn so với việc dùng FindGameObjectsWithTag mỗi frame
+        Collider[] playersInRadius = Physics.OverlapSphere(transform.position, visionRange);
+
+        float closestDistanceSqr = Mathf.Infinity;
+        Transform closestPlayer = null;
+
+        foreach (var col in playersInRadius)
+        {
+            // Kiểm tra xem đối tượng có phải là người chơi không (bằng cách tìm component NetworkCharacterController)
+            if (col.TryGetComponent<NetworkCharacterController>(out _))
+            {
+                float distanceSqr = (transform.position - col.transform.position).sqrMagnitude;
+                if (distanceSqr < closestDistanceSqr)
+                {
+                    closestDistanceSqr = distanceSqr;
+                    closestPlayer = col.transform;
+                }
+            }
+        }
+
+        if (closestPlayer != null)
+        {
+            // Nếu tìm thấy người chơi, đuổi theo
+            isChasing = true;
+            agent.SetDestination(closestPlayer.position);
+        }
+        else
+        {
+            // Nếu không có người chơi nào trong tầm nhìn
+            if (isChasing)
+            {
+                // Nếu trước đó đang đuổi theo, thì bây giờ quay lại tuần tra
+                isChasing = false;
+                currentPatrolTimer = 0f; // Reset timer tuần tra
+                if (currentMode == PatrolMode.Random)
+                {
+                    SetRandomDestination();
+                }
+                else
+                {
+                    agent.SetDestination(fixedPoints[currentPointIndex]);
+                }
+            }
+        }
     }
 
     public override void Render()

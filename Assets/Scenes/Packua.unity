@@ -677,6 +677,11 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -4970416717242390841, guid: 472530eebb2064144b5cd9d0ed7a4f0c, type: 3}
+--- !u!1 &76108259 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 0ae75478126fcde488d263542d8dce98, type: 3}
+  m_PrefabInstance: {fileID: 2068376852}
+  m_PrefabAsset: {fileID: 0}
 --- !u!64 &76645565
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -1353,6 +1358,11 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -4970416717242390841, guid: 472530eebb2064144b5cd9d0ed7a4f0c, type: 3}
+--- !u!4 &193023045 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6503290851291245612, guid: 0ae75478126fcde488d263542d8dce98, type: 3}
+  m_PrefabInstance: {fileID: 2068376852}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &199489603
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3129,6 +3139,48 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 0ae75478126fcde488d263542d8dce98, type: 3}
   m_PrefabInstance: {fileID: 2068376852}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &696633324
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 76108259}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 798c47d60ff3adf49af52f516a4fa3b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  swivel: {fileID: 696633320}
+  barrel: {fileID: 1946741567}
+  firePoint: {fileID: 193023045}
+  rotationSpeed: 8
+  fireRate: 1.5
+  attackRange: 20
+  playerLayer:
+    serializedVersion: 2
+    m_Bits: 8
+  projectilePrefab:
+    RawGuidValue: c7be0738a3b072649a2f328d92933ffa
+--- !u!114 &696633325
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 76108259}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SortKey: 1242782172
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 696633324}
+  ForceRemoteRenderTimeframe: 0
 --- !u!1001 &696655326
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8806,6 +8858,11 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -4970416717242390841, guid: 472530eebb2064144b5cd9d0ed7a4f0c, type: 3}
+--- !u!4 &1946741567 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6981681297413199059, guid: 0ae75478126fcde488d263542d8dce98, type: 3}
+  m_PrefabInstance: {fileID: 2068376852}
+  m_PrefabAsset: {fileID: 0}
 --- !u!64 &1950386529
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -9399,6 +9456,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: cannon_base_blue
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 0ae75478126fcde488d263542d8dce98, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 6503290851291245612, guid: 0ae75478126fcde488d263542d8dce98, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -9450,7 +9511,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 0ae75478126fcde488d263542d8dce98, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 696633325}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 0ae75478126fcde488d263542d8dce98, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 696633324}
   m_SourcePrefab: {fileID: 100100000, guid: 0ae75478126fcde488d263542d8dce98, type: 3}
 --- !u!64 &2069954921
 MeshCollider:

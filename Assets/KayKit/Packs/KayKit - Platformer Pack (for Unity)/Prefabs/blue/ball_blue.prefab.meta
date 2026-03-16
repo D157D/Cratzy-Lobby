@@ -1,10 +1,7 @@
 fileFormatVersion: 2
 guid: c7be0738a3b072649a2f328d92933ffa
-PrefabImporter:
-  externalObjects: {}
-  userData: 
-  assetBundleName: 
-  assetBundleVariant: 
+labels:
+- FusionPrefab
 AssetOrigin:
   serializedVersion: 1
   productId: 313229
@@ -12,3 +9,8 @@ AssetOrigin:
   packageVersion: 1.0.1
   assetPath: Assets/KayKit/Packs/KayKit - Platformer Pack (for Unity)/Prefabs/blue/ball_blue.prefab
   uploadId: 814500
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

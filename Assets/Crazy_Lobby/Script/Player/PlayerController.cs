@@ -24,7 +24,9 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
     private CharacterAnimation _characterAnimation;
     private Vector2 _localMoveInput; 
     private bool _jumpPressed;
-
+    //
+    public LayerMask platformLayer; 
+    private FragilePlatform currentPlatform;
     private void Awake()
     {
         _ncc = GetComponent<NetworkCharacterController>();
@@ -62,6 +64,11 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 
     public override void FixedUpdateNetwork()
     {
+
+        if (HasStateAuthority)
+        {
+            CheckPlatformBeneath();
+        }
         if (GetInput(out NetworkInputData data))
         {
             Quaternion cameraRotation = Quaternion.Euler(0, data.CameraYaw, 0);
@@ -103,6 +110,30 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 
         input.Set(data); 
         _jumpPressed = false;
+    }
+
+    void CheckPlatformBeneath()
+    {
+        // Bắn 1 tia từ chân nhân vật xuống dưới 1 mét
+        Ray ray = new Ray(transform.position + Vector3.up * 0.1f, Vector3.down);
+        
+        if (Physics.Raycast(ray, out RaycastHit hit, 1.5f, platformLayer))
+        {
+            FragilePlatform platform = hit.collider.GetComponent<FragilePlatform>();
+            
+            // Nếu đạp lên 1 khối sàn mới chưa từng đạp
+            if (platform != null && platform != currentPlatform)
+            {
+                currentPlatform = platform;
+                
+                // Gọi điện báo cho toàn server: "Tui vừa đạp lên sàn ID này!"
+                MapManager.Instance.RPC_TriggerPlatformBreak(platform.platformID);
+            }
+        }
+        else
+        {
+            currentPlatform = null; // Đang bay trên không
+        }
     }
 
     public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)

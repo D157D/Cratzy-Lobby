@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class Camera : MonoBehaviour
 {
     public UnityEngine.Camera TargetCamera;
-    public Vector3 Offset = new Vector3(0, 8, -10);
+    public Vector3 Offset = new Vector3(0, 4, -10);
     public float Distance = 10f;
     public float Sensitivity = 2f;
     public Vector2 PitchLimits = new Vector2(-30, 60);

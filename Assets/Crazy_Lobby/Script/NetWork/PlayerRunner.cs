@@ -13,7 +13,7 @@ public class PlayerRunner : NetworkBehaviour, IPlayerJoined, IPlayerLeft
     {
         if (Runner.IsServer)
         {
-            Vector3 spawnPosition = new Vector3(11, 0, 11) + new Vector3(Random.Range(-2f, 2f), 0, Random.Range(-2f, 2f));
+            Vector3 spawnPosition = new Vector3(11, 0, 11) + new Vector3(Random.Range(-5, 5f), 0, Random.Range(-5f, 5f));
             Runner.Spawn(_player, spawnPosition, Quaternion.identity, player);
 
             // Spawn Enemy

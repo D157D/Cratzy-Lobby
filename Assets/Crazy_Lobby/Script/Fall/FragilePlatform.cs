@@ -9,7 +9,7 @@ public class FragilePlatform : MonoBehaviour
     
     private Renderer rend;
     private MaterialPropertyBlock propBlock;
-    private static readonly int ColorProperty = Shader.PropertyToID("_Color");
+    private static readonly int ColorProperty = Shader.PropertyToID("_BaseColor");
 
     void Awake()
     {
@@ -23,6 +23,17 @@ public class FragilePlatform : MonoBehaviour
         if (isBreaking) return; // Nếu đang vỡ rồi thì thôi
         isBreaking = true;
         StartCoroutine(BreakRoutine());
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        // Kiểm tra nếu đối tượng đạp lên là người chơi (cần gán tag "Player" cho nhân vật)
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            // Tùy thuộc vào logic mạng (Multiplayer), bạn có thể gọi trực tiếp hàm này 
+            // hoặc gửi tín hiệu cho MapManager để MapManager gọi RPC đồng bộ cho mọi người.
+            StartBreakingLocally();
+        }
     }
 
     IEnumerator BreakRoutine()

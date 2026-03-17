@@ -144,6 +144,9 @@ MonoBehaviour:
   maxSpeed: 10
   acceleration: 100
   braking: 100
+  platformLayer:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!114 &-1348177609146104739
 MonoBehaviour:
   m_ObjectHideFlags: 0

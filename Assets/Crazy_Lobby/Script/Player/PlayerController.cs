@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Crazy_Lobby.Player;
+using Crazy_Lobby.UI;
 using Fusion;
 using Fusion.Sockets;
 using UnityEngine;
 using UnityEngine.InputSystem;
-
 public struct NetworkInputData : INetworkInput
 {
     public Vector2 Movement;
@@ -114,25 +114,36 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 
     void CheckPlatformBeneath()
     {
-        // Bắn 1 tia từ chân nhân vật xuống dưới 1 mét
         Ray ray = new Ray(transform.position + Vector3.up * 0.1f, Vector3.down);
         
         if (Physics.Raycast(ray, out RaycastHit hit, 1.5f, platformLayer))
         {
             FragilePlatform platform = hit.collider.GetComponent<FragilePlatform>();
             
-            // Nếu đạp lên 1 khối sàn mới chưa từng đạp
             if (platform != null && platform != currentPlatform)
             {
                 currentPlatform = platform;
                 
-                // Gọi điện báo cho toàn server: "Tui vừa đạp lên sàn ID này!"
-                MapManager.Instance.RPC_TriggerPlatformBreak(platform.platformID);
+                if(MapManager.Instance != null)
+                {
+                    MapManager.Instance.RPC_TriggerPlatformBreak(platform.platformID);
+                }
             }
         }
         else
         {
             currentPlatform = null; // Đang bay trên không
+        }
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
+    public void RPC_PickUpItem(string itemName, int amount)
+    {
+        Debug.Log($"Bạn vừa nhặt được: {amount} {itemName}");
+        
+        if(ItemUIManager.Instance != null)
+        {
+            ItemUIManager.Instance.ShowItemPickup(itemName, amount);
         }
     }
 

@@ -103,7 +103,15 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 
         if (UnityEngine.Camera.main != null)
         {
-            data.CameraYaw = UnityEngine.Camera.main.transform.eulerAngles.y;
+            var customCamera = UnityEngine.Camera.main.GetComponent<Camera>();
+            if (customCamera != null)
+            {
+                data.CameraYaw = customCamera.CurrentYaw;
+            }
+            else
+            {
+                data.CameraYaw = UnityEngine.Camera.main.transform.eulerAngles.y;
+            }
         }
 
         data.Jump = _jumpPressed;

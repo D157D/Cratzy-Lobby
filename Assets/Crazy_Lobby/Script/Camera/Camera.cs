@@ -19,6 +19,9 @@ public class Camera : MonoBehaviour
     
     private float _yaw;
     private float _pitch;
+    private bool _isReversedView = false;
+
+    public float CurrentYaw => _yaw;
 
     private void Start()
     {
@@ -32,7 +35,6 @@ public class Camera : MonoBehaviour
 
     private void LateUpdate()
     {
-        // Dành cho việc test offline: nếu chưa có mục tiêu, thử tìm người chơi.
         if (_currentTarget == null)
         {
             GameObject playerObject = GameObject.FindGameObjectWithTag(PlayerTag);
@@ -49,19 +51,35 @@ public class Camera : MonoBehaviour
 
         if (_currentTarget != null && TargetCamera != null)
         {
-            // Xử lý input chuột để xoay camera
-            _yaw += Input.GetAxis("Mouse X") * Sensitivity;
-            _pitch -= Input.GetAxis("Mouse Y") * Sensitivity;
+            if (Input.GetKeyDown(KeyCode.V))
+            {
+                _isReversedView = !_isReversedView;
+            }
+
+            float mouseX = Input.GetAxis("Mouse X") * Sensitivity;
+            float mouseY = Input.GetAxis("Mouse Y") * Sensitivity;
+
+            _yaw += mouseX;
+            _pitch -= mouseY;
+            
             _pitch = Mathf.Clamp(_pitch, PitchLimits.x, PitchLimits.y);
 
             Quaternion rotation = Quaternion.Euler(_pitch, _yaw, 0);
 
-            // Tính toán vị trí: Target + Chiều cao (Offset.y) - Hướng nhìn * Khoảng cách
             Vector3 targetPos = _currentTarget.position + Vector3.up * Offset.y;
-            Vector3 position = targetPos - (rotation * Vector3.forward * Distance);
 
-            TargetCamera.transform.rotation = rotation;
-            TargetCamera.transform.position = position;
+            if (_isReversedView)
+            {
+                Vector3 position = targetPos + (rotation * Vector3.forward * Distance);
+                TargetCamera.transform.rotation = rotation * Quaternion.Euler(0, 180, 0);
+                TargetCamera.transform.position = position;
+            }
+            else
+            {
+                Vector3 position = targetPos - (rotation * Vector3.forward * Distance);
+                TargetCamera.transform.rotation = rotation;
+                TargetCamera.transform.position = position;
+            }
         }
     }
 
@@ -72,7 +90,9 @@ public class Camera : MonoBehaviour
         _currentTarget = _localPlayer; 
         StopSpectating();
 
-        // Chỉ khóa chuột khi người chơi đã vào game và nhận nhân vật
+        _isReversedView = false;
+        _yaw = playerTransform.eulerAngles.y;
+
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
@@ -104,7 +124,6 @@ public class Camera : MonoBehaviour
         
         foreach (var p in players)
         {
-            // Add all players except the local one
             if (p.transform != _localPlayer)
             {
                 _spectatablePlayers.Add(p.transform);

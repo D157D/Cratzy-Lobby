@@ -60,6 +60,26 @@ namespace Crazy_Lobby.UI
             if (_btnJoinByID != null) _btnJoinByID.onClick.AddListener(OnJoinByIDClicked);
         }
 
+        private void Update()
+        {
+            // Kiểm tra nếu người chơi nhấn phím Enter
+            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+            {
+                if (_StartButton != null && _StartButton.gameObject.activeInHierarchy)
+                {
+                    StartGame();
+                }
+                else if (_login_panel != null && _login_panel.activeInHierarchy)
+                {
+                    OnLoginClicked();
+                }
+                else if (_register_panel != null && _register_panel.activeInHierarchy)
+                {
+                    OnRegisterClicked();
+                }
+            }
+        }
+
         public void StartGame()
         {
             if (_StartButton != null) _StartButton.gameObject.SetActive(false);

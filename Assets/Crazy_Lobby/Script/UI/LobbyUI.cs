@@ -43,6 +43,17 @@ namespace Crazy_Lobby.UI
             }
         }
 
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+            {
+                if (startGameButton != null && startGameButton.gameObject.activeInHierarchy)
+                {
+                    OnStartGameClicked();
+                }
+            }
+        }
+
         private void OnLockToggleChanged(bool isPublic)
         {
             if (Runner.IsServer)

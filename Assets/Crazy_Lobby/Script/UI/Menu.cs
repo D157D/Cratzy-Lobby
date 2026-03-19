@@ -263,13 +263,11 @@ namespace Crazy_Lobby.UI
 
         private void OnQuickJoinClicked()
         {
-            // Tìm và tham gia ngẫu nhiên một phòng Public đang mở (truyền chuỗi rỗng)
             StartRoom(GameMode.Client, string.Empty); 
         }
 
         private void OnCreateRoomClicked()
         {
-            // Lấy tên phòng từ ô nhập, nếu không nhập thì tạo ngẫu nhiên
             string roomID = _roomIDInput != null && !string.IsNullOrEmpty(_roomIDInput.text) 
                             ? _roomIDInput.text 
                             : "Room_" + Random.Range(1000, 9999);
@@ -307,7 +305,7 @@ namespace Crazy_Lobby.UI
             var args = new StartGameArgs()
             {
                 GameMode = mode,
-                SessionName = roomID, // Gán trực tiếp roomID (nếu rỗng, Fusion tự động Matchmaking)
+                SessionName = roomID, 
                 SceneManager = sceneManager,
                 Scene = SceneRef.FromIndex(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex)
             };
@@ -321,10 +319,8 @@ namespace Crazy_Lobby.UI
             }
             else
             {
-                // Bật lại panel UI nếu quá trình tìm/tạo phòng thất bại
                 if (_room_panel != null) _room_panel.SetActive(false);
 
-                // Nếu là Quick Play mà không có phòng nào thì báo lỗi cụ thể
                 if (mode == GameMode.Client && string.IsNullOrEmpty(roomID))
                 {
                     Debug.LogError("<color=red>Không tìm thấy phòng Public nào đang mở! Hãy tự tạo phòng mới.</color>");

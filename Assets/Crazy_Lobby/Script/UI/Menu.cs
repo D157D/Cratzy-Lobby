@@ -95,6 +95,11 @@ namespace Crazy_Lobby.UI
                     _GameName.localScale = gameNameTargetScale;
                 }
 
+                // Điền sẵn thông tin và hiện bảng đăng nhập lên trong lúc chờ Server phản hồi
+                if (_username_login != null) _username_login.text = savedUser;
+                if (_pass_login != null) _pass_login.text = savedPass;
+                ShowLoginPanel();
+
                 Debug.Log("Phát hiện tài khoản đã lưu, đang tự động đăng nhập...");
                 BackendManager.Instance.Login(savedUser, savedPass, (isSuccess, message) => 
                 {

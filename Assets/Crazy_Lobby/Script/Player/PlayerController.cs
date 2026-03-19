@@ -41,6 +41,13 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
         if (HasInputAuthority)
         {
             Runner.AddCallbacks(this);
+            
+            // Tìm script Menu (kể cả khi GameObject đang ẩn) và tắt _CrazyLobby
+            Menu menu = FindObjectOfType<Menu>(true);
+            if (menu != null && menu._CrazyLobby != null)
+            {
+                menu._CrazyLobby.SetActive(false);
+            }
         }
     }
 

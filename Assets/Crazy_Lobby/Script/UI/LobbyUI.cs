@@ -11,7 +11,7 @@ namespace Crazy_Lobby.UI
         public TextMeshProUGUI roomIDText;
         public Button startGameButton;
         public Toggle publicPrivateToggle;
-        public string gameSceneName = "Lobby"; 
+        public string gameSceneName = "Map"; 
         
         [Networked] public NetworkBool IsLocked { get; set; }
 
@@ -69,7 +69,16 @@ namespace Crazy_Lobby.UI
                 Runner.SessionInfo.IsOpen = false; 
                 Runner.SessionInfo.IsVisible = false;
                 
-                UnityEngine.SceneManagement.SceneManager.LoadScene(gameSceneName);
+                // Sử dụng Runner.LoadScene thay vì SceneManager mặc định để đồng bộ chuyển scene cho tất cả người chơi trong phòng
+                int buildIndex = UnityEngine.SceneManagement.SceneUtility.GetBuildIndexByScenePath(gameSceneName);
+                if (buildIndex >= 0)
+                {
+                    Runner.LoadScene(SceneRef.FromIndex(buildIndex));
+                }
+                else
+                {
+                    Debug.LogError($"[LobbyUI] Không tìm thấy scene '{gameSceneName}' trong Build Settings. Vui lòng thêm scene vào Build Settings!");
+                }
             }
         }
     }

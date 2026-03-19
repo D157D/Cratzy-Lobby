@@ -26,6 +26,7 @@ namespace Crazy_Lobby.UI
         public GameObject _register_panel;
         
         [Header("Main Panel (Room Management)")]
+        public GameObject _CrazyLobby;
         public GameObject _main_panel;
         public Button _btnQuickJoin;
         public Button _btnCreateRoom;
@@ -216,12 +217,16 @@ namespace Crazy_Lobby.UI
 
         private void OnQuickJoinClicked()
         {
+            // Tìm và tham gia ngẫu nhiên một phòng Public đang mở (truyền chuỗi rỗng)
             StartRoom(GameMode.Client, string.Empty); 
         }
 
         private void OnCreateRoomClicked()
         {
-            string roomID = "Room_" + Random.Range(1000, 9999);
+            // Lấy tên phòng từ ô nhập, nếu không nhập thì tạo ngẫu nhiên
+            string roomID = _roomIDInput != null && !string.IsNullOrEmpty(_roomIDInput.text) 
+                            ? _roomIDInput.text 
+                            : "Room_" + Random.Range(1000, 9999);
             StartRoom(GameMode.Host, roomID);
         }
 
@@ -230,7 +235,7 @@ namespace Crazy_Lobby.UI
             string roomID = _roomIDInput != null ? _roomIDInput.text : "";
             if (string.IsNullOrEmpty(roomID))
             {
-                Debug.LogWarning("Vui lòng nhập ID phòng!");
+                Debug.LogWarning("Vui lòng nhập ID phòng để Join!");
                 return;
             }
             StartRoom(GameMode.Client, roomID);
@@ -238,6 +243,7 @@ namespace Crazy_Lobby.UI
 
         private async void StartRoom(GameMode mode, string roomID)
         {
+            
             NetworkRunner runner = FindObjectOfType<NetworkRunner>();
             if (runner == null) runner = gameObject.AddComponent<NetworkRunner>();
 
@@ -246,13 +252,17 @@ namespace Crazy_Lobby.UI
             var sceneManager = runner.gameObject.GetComponent<NetworkSceneManagerDefault>();
             if (sceneManager == null) sceneManager = runner.gameObject.AddComponent<NetworkSceneManagerDefault>();
 
-            Debug.Log($"Đang kết nối vào phòng {roomID}... Vui lòng chờ.");
+            if (string.IsNullOrEmpty(roomID))
+                Debug.Log("Đang tìm phòng Public ngẫu nhiên... Vui lòng chờ.");
+            else
+                Debug.Log($"Đang kết nối vào phòng {roomID}... Vui lòng chờ.");
 
             var args = new StartGameArgs()
             {
                 GameMode = mode,
-                SessionName = string.IsNullOrEmpty(roomID) ? null : roomID,
-                SceneManager = sceneManager
+                SessionName = roomID, // Gán trực tiếp roomID (nếu rỗng, Fusion tự động Matchmaking)
+                SceneManager = sceneManager,
+                Scene = SceneRef.FromIndex(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex)
             };
 
             var result = await runner.StartGame(args);
@@ -260,13 +270,23 @@ namespace Crazy_Lobby.UI
             if (result.Ok)
             {
                 Debug.Log("<color=green>Vào phòng thành công!</color>");
-                
-                // Do đã ở cùng scene Lobby, ta chỉ cần ẩn màn hình Menu đi
+
                 gameObject.SetActive(false);
             }
             else
             {
-                Debug.LogError($"<color=red>Lỗi không thể tham gia: {result.ShutdownReason}</color>");
+                // Bật lại panel UI nếu quá trình tìm/tạo phòng thất bại
+                if (_main_panel != null) _main_panel.SetActive(true);
+
+                // Nếu là Quick Play mà không có phòng nào thì báo lỗi cụ thể
+                if (mode == GameMode.Client && string.IsNullOrEmpty(roomID))
+                {
+                    Debug.LogError("<color=red>Không tìm thấy phòng Public nào đang mở! Hãy tự tạo phòng mới.</color>");
+                }
+                else
+                {
+                    Debug.LogError($"<color=red>Lỗi không thể tham gia: {result.ShutdownReason}</color>");
+                }
             }
         }
     }

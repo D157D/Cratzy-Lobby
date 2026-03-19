@@ -95,10 +95,10 @@ namespace Crazy_Lobby.UI
                     _GameName.localScale = gameNameTargetScale;
                 }
 
-                // Điền sẵn thông tin và hiện bảng đăng nhập lên trong lúc chờ Server phản hồi
-                if (_username_login != null) _username_login.text = savedUser;
-                if (_pass_login != null) _pass_login.text = savedPass;
-                ShowLoginPanel();
+                // // Điền sẵn thông tin và hiện bảng đăng nhập lên trong lúc chờ Server phản hồi
+                // if (_username_login != null) _username_login.text = savedUser;
+                // if (_pass_login != null) _pass_login.text = savedPass;
+                // ShowLoginPanel();
 
                 Debug.Log("Phát hiện tài khoản đã lưu, đang tự động đăng nhập...");
                 BackendManager.Instance.Login(savedUser, savedPass, (isSuccess, message) => 
@@ -218,6 +218,12 @@ namespace Crazy_Lobby.UI
                 return;
             }
 
+            if (BackendManager.Instance == null)
+            {
+                Debug.LogError("Lỗi: Không tìm thấy BackendManager trong Scene. Vui lòng tạo một GameObject và gắn script BackendManager vào.");
+                return;
+            }
+
             BackendManager.Instance.Login(username, password, (isSuccess, message) => 
             {
                 Debug.Log(message);
@@ -239,6 +245,12 @@ namespace Crazy_Lobby.UI
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
                 Debug.LogWarning("Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.");
+                return;
+            }
+
+            if (BackendManager.Instance == null)
+            {
+                Debug.LogError("Lỗi: Không tìm thấy BackendManager trong Scene. Vui lòng tạo một GameObject và gắn script BackendManager vào.");
                 return;
             }
 

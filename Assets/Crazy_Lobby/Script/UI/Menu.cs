@@ -213,13 +213,11 @@ namespace Crazy_Lobby.UI
                 return;
             }
 
-            Debug.Log("Đang gửi yêu cầu đăng nhập...");
             BackendManager.Instance.Login(username, password, (isSuccess, message) => 
             {
                 Debug.Log(message);
                 if (isSuccess)
                 {
-                    // Lưu lại tài khoản và mật khẩu vào máy khi đăng nhập thành công
                     PlayerPrefs.SetString("SavedUsername", username);
                     PlayerPrefs.SetString("SavedPassword", password);
                     PlayerPrefs.Save();

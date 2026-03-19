@@ -2094,7 +2094,7 @@ MonoBehaviour:
   _currentStage: 0
   AutoConnectVirtualInstances: 1
   VirtualInstanceConnectDelay: 1
-  networkPanel: {fileID: 158090684}
+  networkPanel: {fileID: 0}
   hostButton: {fileID: 1661559457}
   clientButton: {fileID: 1026169806}
   serverButton: {fileID: 532169832}
@@ -5238,6 +5238,14 @@ PrefabInstance:
       propertyPath: _CrazyLobby
       value: 
       objectReference: {fileID: 341958181}
+    - target: {fileID: 7315671817828768803, guid: 0dba2e00d9818ca4eb54bbbe4fd02535, type: 3}
+      propertyPath: _room_panel
+      value: 
+      objectReference: {fileID: 158090684}
+    - target: {fileID: 7930210079325900888, guid: 0dba2e00d9818ca4eb54bbbe4fd02535, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8276573750601147327, guid: 0dba2e00d9818ca4eb54bbbe4fd02535, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0

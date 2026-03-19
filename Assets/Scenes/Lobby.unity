@@ -2098,6 +2098,11 @@ MonoBehaviour:
   hostButton: {fileID: 1661559457}
   clientButton: {fileID: 1026169806}
   serverButton: {fileID: 532169832}
+--- !u!1 &341958181 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5425269367731622336, guid: 0dba2e00d9818ca4eb54bbbe4fd02535, type: 3}
+  m_PrefabInstance: {fileID: 960133558}
+  m_PrefabAsset: {fileID: 0}
 --- !u!64 &343915471
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -4929,6 +4934,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7315671817828768803, guid: 0dba2e00d9818ca4eb54bbbe4fd02535, type: 3}
+      propertyPath: _CrazyLobby
+      value: 
+      objectReference: {fileID: 341958181}
     - target: {fileID: 8276573750601147327, guid: 0dba2e00d9818ca4eb54bbbe4fd02535, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0

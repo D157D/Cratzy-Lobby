@@ -84,6 +84,7 @@ namespace Crazy_Lobby.UI
         {
             if (_StartButton != null) _StartButton.gameObject.SetActive(false);
             
+            /* Tạm thời comment phần tự động đăng nhập
             string savedUser = PlayerPrefs.GetString("SavedUsername", "");
             string savedPass = PlayerPrefs.GetString("SavedPassword", "");
 
@@ -108,6 +109,7 @@ namespace Crazy_Lobby.UI
                 });
             }
             else
+            */
             {
                 // Chưa có tài khoản lưu sẵn, chạy hoạt ảnh kéo tên game lên và gọi ShowLoginPanel()
                 StartCoroutine(AnimateGameName());

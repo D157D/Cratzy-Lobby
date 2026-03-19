@@ -31,6 +31,8 @@ public class MatchResultReq
     public int missHits;
 }
 
+[Serializable]
+public class UserProfileResponse { public string username; }
 
 
 public class BackendManager : MonoBehaviour
@@ -54,6 +56,11 @@ public class BackendManager : MonoBehaviour
     public void Login(string username, string password, Action<bool, string> callback = null)
     {
         StartCoroutine(LoginRequest(username, password, callback));
+    }
+
+    public void GetUserProfile(Action<bool, string> callback = null)
+    {
+        StartCoroutine(GetUserProfileRequest(callback));
     }
 
     IEnumerator RegisterRequest(string username, string password, Action<bool, string> callback)
@@ -135,6 +142,37 @@ public class BackendManager : MonoBehaviour
                 }
                 
                 callback?.Invoke(false, "Đăng nhập thất bại: " + req.error);
+            }
+        }
+    }
+
+    IEnumerator GetUserProfileRequest(Action<bool, string> callback)
+    {
+        // Lưu ý: Đổi "/User/profile" thành đúng đường dẫn API đang mở trên Server của bạn
+        string url = baseUrl + "/User/profile"; 
+        Debug.Log("Đang gửi Get Profile Request tới: " + url);
+
+        using (UnityWebRequest req = UnityWebRequest.Get(url))
+        {
+            // Gửi kèm Token để xác thực người dùng
+            if (!string.IsNullOrEmpty(currentToken))
+            {
+                req.SetRequestHeader("Authorization", "Bearer " + currentToken);
+            }
+            req.certificateHandler = new BypassCertificate();
+
+            yield return req.SendWebRequest();
+
+            if (req.result == UnityWebRequest.Result.Success)
+            {
+                string jsonResponse = req.downloadHandler.text;
+                UserProfileResponse res = JsonUtility.FromJson<UserProfileResponse>(jsonResponse);
+                callback?.Invoke(true, res.username);
+            }
+            else
+            {
+                Debug.LogError("<color=red>LỖI LẤY TÊN: " + req.error + "</color>");
+                callback?.Invoke(false, "Lỗi tải tên: " + req.error);
             }
         }
     }

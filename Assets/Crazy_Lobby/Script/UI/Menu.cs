@@ -3,6 +3,7 @@ using Fusion;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Threading.Tasks;
 
 namespace Crazy_Lobby.UI
 {
@@ -24,21 +25,38 @@ namespace Crazy_Lobby.UI
         public GameObject _login_panel;
         public GameObject _register_panel;
         
+        [Header("Main Panel (Room Management)")]
+        public GameObject _main_panel;
+        public Button _btnQuickJoin;
+        public Button _btnCreateRoom;
+        public Button _btnJoinByID;
+        public TMP_InputField _roomIDInput;
+
         [Header("Animation Settings")]
         private Vector2 gameNameTargetPos = new Vector2(0, 300); 
         private Vector3 gameNameTargetScale = new Vector3(0.5f, 0.5f, 1f); 
         private float animationDuration = 1f;
+        
+        [Header("Panel Transition")]
+        private float panelTransitionDuration = 0.3f; 
+        private bool isTransitioning = false; 
 
         private void Start()
         {
             if (_login_panel != null) _login_panel.SetActive(false);
             if (_register_panel != null) _register_panel.SetActive(false);
+            if (_main_panel != null) _main_panel.SetActive(false);
+            if (_Chose_login != null) _Chose_login.gameObject.SetActive(false);
+            if (_Chose_register != null) _Chose_register.gameObject.SetActive(false);
             if (_StartButton != null) _StartButton.gameObject.SetActive(true);
             if (_StartButton != null) _StartButton.onClick.AddListener(StartGame);
             if (_Chose_register != null) _Chose_register.onClick.AddListener(ShowRegisterPanel);
             if (_Chose_login != null) _Chose_login.onClick.AddListener(ShowLoginPanel);
             if (_LoginButton != null) _LoginButton.onClick.AddListener(OnLoginClicked);
             if (_RegisterButton != null) _RegisterButton.onClick.AddListener(OnRegisterClicked);
+            if (_btnQuickJoin != null) _btnQuickJoin.onClick.AddListener(OnQuickJoinClicked);
+            if (_btnCreateRoom != null) _btnCreateRoom.onClick.AddListener(OnCreateRoomClicked);
+            if (_btnJoinByID != null) _btnJoinByID.onClick.AddListener(OnJoinByIDClicked);
         }
 
         public void StartGame()
@@ -72,17 +90,73 @@ namespace Crazy_Lobby.UI
 
             ShowLoginPanel();
         }
-
         public void ShowLoginPanel()
         {
-            if (_register_panel != null) _register_panel.SetActive(false);
-            if (_login_panel != null) _login_panel.SetActive(true);
+            if (isTransitioning || (_login_panel != null && _login_panel.activeSelf)) return;
+            
+            if (_Chose_login != null) _Chose_login.gameObject.SetActive(false);
+            if (_Chose_register != null) _Chose_register.gameObject.SetActive(true);
+
+            StartCoroutine(TransitionPanels(_register_panel, _login_panel));
         }
 
         public void ShowRegisterPanel()
         {
-            if (_login_panel != null) _login_panel.SetActive(false);
-            if (_register_panel != null) _register_panel.SetActive(true);
+            if (isTransitioning || (_register_panel != null && _register_panel.activeSelf)) return;
+            
+            if (_Chose_login != null) _Chose_login.gameObject.SetActive(true);
+            if (_Chose_register != null) _Chose_register.gameObject.SetActive(false);
+
+            StartCoroutine(TransitionPanels(_login_panel, _register_panel));
+        }
+
+        private IEnumerator TransitionPanels(GameObject fromPanel, GameObject toPanel)
+        {
+            isTransitioning = true;
+
+            if (fromPanel != null && fromPanel.activeSelf)
+            {
+                CanvasGroup fromCG = GetOrAddCanvasGroup(fromPanel);
+                fromCG.interactable = false;
+                fromCG.blocksRaycasts = false;
+
+                float elapsed = 0f;
+                while (elapsed < panelTransitionDuration)
+                {
+                    elapsed += Time.deltaTime;
+                    fromCG.alpha = Mathf.Lerp(1f, 0f, elapsed / panelTransitionDuration);
+                    yield return null;
+                }
+                fromPanel.SetActive(false);
+            }
+
+            if (toPanel != null)
+            {
+                toPanel.SetActive(true);
+                CanvasGroup toCG = GetOrAddCanvasGroup(toPanel);
+                toCG.alpha = 0f;
+
+                float elapsed = 0f;
+                while (elapsed < panelTransitionDuration)
+                {
+                    elapsed += Time.deltaTime;
+                    toCG.alpha = Mathf.Lerp(0f, 1f, elapsed / panelTransitionDuration);
+                    yield return null;
+                }
+                toCG.alpha = 1f;
+                toCG.interactable = true;
+                toCG.blocksRaycasts = true;
+            }
+
+            isTransitioning = false;
+        }
+
+        private CanvasGroup GetOrAddCanvasGroup(GameObject panel)
+        {
+            if (panel == null) return null;
+            CanvasGroup cg = panel.GetComponent<CanvasGroup>();
+            if (cg == null) cg = panel.AddComponent<CanvasGroup>();
+            return cg;
         }
 
         private void OnLoginClicked()
@@ -102,7 +176,7 @@ namespace Crazy_Lobby.UI
                 Debug.Log(message);
                 if (isSuccess)
                 {
-                    gameObject.SetActive(false); // Ẩn Menu UI hoặc kích hoạt logic load Lobby/Menu chính
+                    ShowMainPanel();
                 }
             });
         }
@@ -119,15 +193,81 @@ namespace Crazy_Lobby.UI
             }
 
             Debug.Log("Đang gửi yêu cầu đăng ký...");
-            // Tách biệt logic Authentication: Gọi sang BackendManager
             BackendManager.Instance.Register(username, password, (isSuccess, message) => 
             {
                 Debug.Log(message);
                 if (isSuccess)
                 {
-                    ShowLoginPanel(); // Tự động chuyển về tab Đăng nhập khi thành công
+                    ShowLoginPanel(); 
                 }
             });
+        }
+
+        public void ShowMainPanel()
+        {
+            if (_login_panel != null) _login_panel.SetActive(false);
+            if (_register_panel != null) _register_panel.SetActive(false);
+            if (_Chose_login != null) _Chose_login.gameObject.SetActive(false);
+            if (_Chose_register != null) _Chose_register.gameObject.SetActive(false);
+            if (_main_panel != null) _main_panel.SetActive(true);
+            
+            if (_GameName != null) _GameName.gameObject.SetActive(false); 
+        }
+
+        private void OnQuickJoinClicked()
+        {
+            StartRoom(GameMode.Client, string.Empty); 
+        }
+
+        private void OnCreateRoomClicked()
+        {
+            string roomID = "Room_" + Random.Range(1000, 9999);
+            StartRoom(GameMode.Host, roomID);
+        }
+
+        private void OnJoinByIDClicked()
+        {
+            string roomID = _roomIDInput != null ? _roomIDInput.text : "";
+            if (string.IsNullOrEmpty(roomID))
+            {
+                Debug.LogWarning("Vui lòng nhập ID phòng!");
+                return;
+            }
+            StartRoom(GameMode.Client, roomID);
+        }
+
+        private async void StartRoom(GameMode mode, string roomID)
+        {
+            NetworkRunner runner = FindObjectOfType<NetworkRunner>();
+            if (runner == null) runner = gameObject.AddComponent<NetworkRunner>();
+
+            runner.ProvideInput = true;
+            
+            var sceneManager = runner.gameObject.GetComponent<NetworkSceneManagerDefault>();
+            if (sceneManager == null) sceneManager = runner.gameObject.AddComponent<NetworkSceneManagerDefault>();
+
+            Debug.Log($"Đang kết nối vào phòng {roomID}... Vui lòng chờ.");
+
+            var args = new StartGameArgs()
+            {
+                GameMode = mode,
+                SessionName = string.IsNullOrEmpty(roomID) ? null : roomID,
+                SceneManager = sceneManager
+            };
+
+            var result = await runner.StartGame(args);
+
+            if (result.Ok)
+            {
+                Debug.Log("<color=green>Vào phòng thành công!</color>");
+                
+                // Do đã ở cùng scene Lobby, ta chỉ cần ẩn màn hình Menu đi
+                gameObject.SetActive(false);
+            }
+            else
+            {
+                Debug.LogError($"<color=red>Lỗi không thể tham gia: {result.ShutdownReason}</color>");
+            }
         }
     }
 }

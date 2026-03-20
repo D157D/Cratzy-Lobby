@@ -5,7 +5,7 @@ using UnityEngine;
 public class PlayerRunner : NetworkBehaviour, IPlayerJoined, IPlayerLeft
 {
     public NetworkPrefabRef _player;
-    public NetworkPrefabRef _enemyPrefab;
+    // public NetworkPrefabRef _enemyPrefab;
 
     private bool _hasSpawnedEnemy = false;
 
@@ -13,16 +13,16 @@ public class PlayerRunner : NetworkBehaviour, IPlayerJoined, IPlayerLeft
     {
         if (Runner.IsServer)
         {
-            Vector3 spawnPosition = new Vector3(11, 0, 11) + new Vector3(Random.Range(-5, 5f), 0, Random.Range(-5f, 5f));
+            Vector3 spawnPosition = new Vector3(0, 2, 0) + new Vector3(Random.Range(-5, 5f), 0, Random.Range(-5f, 5f));
             Runner.Spawn(_player, spawnPosition, Quaternion.identity, player);
 
             // Spawn Enemy
-            if(!Runner.IsClient && !_hasSpawnedEnemy)
-            {
-                Vector3 enemySpawnPosition = new Vector3(11, 0, 11) + new Vector3(Random.Range(-2f, 2f), 0, Random.Range(-2f, 2f));
-                Runner.Spawn(_enemyPrefab, enemySpawnPosition);
-                _hasSpawnedEnemy = true;
-            }
+            // if(!Runner.IsClient && !_hasSpawnedEnemy)
+            // {
+            //     Vector3 enemySpawnPosition = new Vector3(11, 0, 11) + new Vector3(Random.Range(-2f, 2f), 0, Random.Range(-2f, 2f));
+            //     Runner.Spawn(_enemyPrefab, enemySpawnPosition);
+            //     _hasSpawnedEnemy = true;
+            // }
         }
     }
 

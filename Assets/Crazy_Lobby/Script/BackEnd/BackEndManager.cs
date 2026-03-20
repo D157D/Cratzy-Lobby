@@ -133,15 +133,25 @@ public class BackendManager : MonoBehaviour
             }
             else
             {
-                Debug.LogError("<color=red>ĐĂNG NHẬP THẤT BẠI: " + req.error + "</color>");
-                Debug.LogError("Mã lỗi (Response Code): " + req.responseCode);
-
-                if (req.downloadHandler != null && !string.IsNullOrEmpty(req.downloadHandler.text))
+                // Fallback: Cho phép đăng nhập offline nếu web API lỗi và người dùng nhập aaa/aaa
+                if (username == "aaa" && password == "aaa")
                 {
-                    Debug.LogError("Chi tiết lỗi từ Server: " + req.downloadHandler.text);
+                    Debug.Log("<color=green>ĐĂNG NHẬP THÀNH CÔNG (Chế độ Offline/Dự phòng)!</color>");
+                    currentToken = "offline_token_aaa";
+                    callback?.Invoke(true, "Đăng nhập thành công (Offline)!");
                 }
-                
-                callback?.Invoke(false, "Đăng nhập thất bại: " + req.error);
+                else
+                {
+                    Debug.LogError("<color=red>ĐĂNG NHẬP THẤT BẠI: " + req.error + "</color>");
+                    Debug.LogError("Mã lỗi (Response Code): " + req.responseCode);
+
+                    if (req.downloadHandler != null && !string.IsNullOrEmpty(req.downloadHandler.text))
+                    {
+                        Debug.LogError("Chi tiết lỗi từ Server: " + req.downloadHandler.text);
+                    }
+                    
+                    callback?.Invoke(false, "Đăng nhập thất bại: " + req.error);
+                }
             }
         }
     }

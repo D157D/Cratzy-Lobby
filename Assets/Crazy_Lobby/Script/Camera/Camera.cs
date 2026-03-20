@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Fusion;
 
 public class Camera : MonoBehaviour
 {
@@ -37,10 +38,15 @@ public class Camera : MonoBehaviour
     {
         if (_currentTarget == null)
         {
-            GameObject playerObject = GameObject.FindGameObjectWithTag(PlayerTag);
-            if (playerObject != null)
+            GameObject[] playerObjects = GameObject.FindGameObjectsWithTag(PlayerTag);
+            foreach (var p in playerObjects)
             {
-                SetLocalPlayer(playerObject.transform);
+                var networkObj = p.GetComponent<NetworkObject>();
+                if (networkObj != null && networkObj.HasInputAuthority)
+                {
+                    SetLocalPlayer(p.transform);
+                    break; 
+                }
             }
         }
 

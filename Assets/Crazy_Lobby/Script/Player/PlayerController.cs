@@ -41,7 +41,32 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
         if (HasInputAuthority)
         {
             Runner.AddCallbacks(this);
+
+            // Tắt và bật lại PlayerInput để ép Unity kết nối lại với thiết bị (bàn phím/chuột) của Client
+            PlayerInput playerInput = GetComponent<PlayerInput>();
+            if (playerInput != null)
+            {
+                playerInput.enabled = false;
+                playerInput.enabled = true;
+            }
+            
+            // Tìm script Menu (kể cả khi GameObject đang ẩn) và tắt _CrazyLobby
+            Menu menu = FindObjectOfType<Menu>(true);
+            if (menu != null && menu._CrazyLobby != null)
+            {
+                menu._CrazyLobby.SetActive(false);
+            }
         }
+            else
+            {
+                // Tắt PlayerInput trên các nhân vật của người chơi khác (Proxy)
+                // để tránh việc chúng giành quyền điều khiển bàn phím/chuột của máy bạn
+                PlayerInput playerInput = GetComponent<PlayerInput>();
+                if (playerInput != null)
+                {
+                    playerInput.enabled = false;
+                }
+            }
     }
 
     public override void Despawned(NetworkRunner runner, bool hasState)

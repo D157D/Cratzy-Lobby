@@ -25,8 +25,9 @@ namespace Crazy_Lobby.UI
         public GameObject _login_panel;
         public GameObject _register_panel;
         
-        [Header("Main Panel (Room Management)")]
-        public GameObject _main_panel;
+        [Header("Room Panel (Room Management)")]
+        public GameObject _CrazyLobby;
+        public GameObject _room_panel;
         public Button _btnQuickJoin;
         public Button _btnCreateRoom;
         public Button _btnJoinByID;
@@ -45,10 +46,9 @@ namespace Crazy_Lobby.UI
         {
             if (_login_panel != null) _login_panel.SetActive(false);
             if (_register_panel != null) _register_panel.SetActive(false);
-            if (_main_panel != null) _main_panel.SetActive(false);
+            if (_room_panel != null) _room_panel.SetActive(false);
             if (_Chose_login != null) _Chose_login.gameObject.SetActive(false);
             if (_Chose_register != null) _Chose_register.gameObject.SetActive(false);
-            if (_StartButton != null) _StartButton.gameObject.SetActive(true);
             if (_StartButton != null) _StartButton.onClick.AddListener(StartGame);
             if (_Chose_register != null) _Chose_register.onClick.AddListener(ShowRegisterPanel);
             if (_Chose_login != null) _Chose_login.onClick.AddListener(ShowLoginPanel);
@@ -57,13 +57,63 @@ namespace Crazy_Lobby.UI
             if (_btnQuickJoin != null) _btnQuickJoin.onClick.AddListener(OnQuickJoinClicked);
             if (_btnCreateRoom != null) _btnCreateRoom.onClick.AddListener(OnCreateRoomClicked);
             if (_btnJoinByID != null) _btnJoinByID.onClick.AddListener(OnJoinByIDClicked);
+
+            
+        }
+
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+            {
+                if (_StartButton != null && _StartButton.gameObject.activeInHierarchy)
+                {
+                    StartGame();
+                }
+                else if (_login_panel != null && _login_panel.activeInHierarchy)
+                {
+                    OnLoginClicked();
+                }
+                else if (_register_panel != null && _register_panel.activeInHierarchy)
+                {
+                    OnRegisterClicked();
+                }
+            }
         }
 
         public void StartGame()
         {
             if (_StartButton != null) _StartButton.gameObject.SetActive(false);
             
-            StartCoroutine(AnimateGameName());
+            /* Tạm thời comment phần tự động đăng nhập
+            string savedUser = PlayerPrefs.GetString("SavedUsername", "");
+            string savedPass = PlayerPrefs.GetString("SavedPassword", "");
+
+            if (!string.IsNullOrEmpty(savedUser) && !string.IsNullOrEmpty(savedPass))
+            {
+                if (_GameName != null)
+                {
+                    _GameName.anchoredPosition = gameNameTargetPos;
+                    _GameName.localScale = gameNameTargetScale;
+                }
+
+                // // Điền sẵn thông tin và hiện bảng đăng nhập lên trong lúc chờ Server phản hồi
+                // if (_username_login != null) _username_login.text = savedUser;
+                // if (_pass_login != null) _pass_login.text = savedPass;
+                // ShowLoginPanel();
+
+                Debug.Log("Phát hiện tài khoản đã lưu, đang tự động đăng nhập...");
+                BackendManager.Instance.Login(savedUser, savedPass, (isSuccess, message) => 
+                {
+                    if (isSuccess) ShowRoomPanel();
+                    else ShowLoginPanel();
+                });
+            }
+            else
+            */
+            {
+                // Chưa có tài khoản lưu sẵn, chạy hoạt ảnh kéo tên game lên và gọi ShowLoginPanel()
+                StartCoroutine(AnimateGameName());
+            }
         }
 
         private IEnumerator AnimateGameName()
@@ -170,13 +220,21 @@ namespace Crazy_Lobby.UI
                 return;
             }
 
-            Debug.Log("Đang gửi yêu cầu đăng nhập...");
+            if (BackendManager.Instance == null)
+            {
+                Debug.LogError("Lỗi: Không tìm thấy BackendManager trong Scene. Vui lòng tạo một GameObject và gắn script BackendManager vào.");
+                return;
+            }
+
             BackendManager.Instance.Login(username, password, (isSuccess, message) => 
             {
                 Debug.Log(message);
                 if (isSuccess)
                 {
-                    ShowMainPanel();
+                    PlayerPrefs.SetString("SavedUsername", username);
+                    PlayerPrefs.SetString("SavedPassword", password);
+                    PlayerPrefs.Save();
+                    ShowRoomPanel();
                 }
             });
         }
@@ -192,6 +250,12 @@ namespace Crazy_Lobby.UI
                 return;
             }
 
+            if (BackendManager.Instance == null)
+            {
+                Debug.LogError("Lỗi: Không tìm thấy BackendManager trong Scene. Vui lòng tạo một GameObject và gắn script BackendManager vào.");
+                return;
+            }
+
             Debug.Log("Đang gửi yêu cầu đăng ký...");
             BackendManager.Instance.Register(username, password, (isSuccess, message) => 
             {
@@ -203,13 +267,13 @@ namespace Crazy_Lobby.UI
             });
         }
 
-        public void ShowMainPanel()
+        public void ShowRoomPanel()
         {
             if (_login_panel != null) _login_panel.SetActive(false);
             if (_register_panel != null) _register_panel.SetActive(false);
             if (_Chose_login != null) _Chose_login.gameObject.SetActive(false);
             if (_Chose_register != null) _Chose_register.gameObject.SetActive(false);
-            if (_main_panel != null) _main_panel.SetActive(true);
+            if (_room_panel != null) _room_panel.SetActive(true);
             
             if (_GameName != null) _GameName.gameObject.SetActive(false); 
         }
@@ -221,7 +285,9 @@ namespace Crazy_Lobby.UI
 
         private void OnCreateRoomClicked()
         {
-            string roomID = "Room_" + Random.Range(1000, 9999);
+            string roomID = _roomIDInput != null && !string.IsNullOrEmpty(_roomIDInput.text) 
+                            ? _roomIDInput.text 
+                            : "Room_" + Random.Range(1000, 9999);
             StartRoom(GameMode.Host, roomID);
         }
 
@@ -230,7 +296,7 @@ namespace Crazy_Lobby.UI
             string roomID = _roomIDInput != null ? _roomIDInput.text : "";
             if (string.IsNullOrEmpty(roomID))
             {
-                Debug.LogWarning("Vui lòng nhập ID phòng!");
+                Debug.LogWarning("Vui lòng nhập ID phòng để Join!");
                 return;
             }
             StartRoom(GameMode.Client, roomID);
@@ -238,6 +304,8 @@ namespace Crazy_Lobby.UI
 
         private async void StartRoom(GameMode mode, string roomID)
         {
+            if (_room_panel != null) _room_panel.SetActive(false);
+
             NetworkRunner runner = FindObjectOfType<NetworkRunner>();
             if (runner == null) runner = gameObject.AddComponent<NetworkRunner>();
 
@@ -246,13 +314,17 @@ namespace Crazy_Lobby.UI
             var sceneManager = runner.gameObject.GetComponent<NetworkSceneManagerDefault>();
             if (sceneManager == null) sceneManager = runner.gameObject.AddComponent<NetworkSceneManagerDefault>();
 
-            Debug.Log($"Đang kết nối vào phòng {roomID}... Vui lòng chờ.");
+            if (string.IsNullOrEmpty(roomID))
+                Debug.Log("Đang tìm phòng Public ngẫu nhiên... Vui lòng chờ.");
+            else
+                Debug.Log($"Đang kết nối vào phòng {roomID}... Vui lòng chờ.");
 
             var args = new StartGameArgs()
             {
                 GameMode = mode,
-                SessionName = string.IsNullOrEmpty(roomID) ? null : roomID,
-                SceneManager = sceneManager
+                SessionName = roomID, 
+                SceneManager = sceneManager,
+                Scene = SceneRef.FromIndex(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex)
             };
 
             var result = await runner.StartGame(args);
@@ -260,13 +332,20 @@ namespace Crazy_Lobby.UI
             if (result.Ok)
             {
                 Debug.Log("<color=green>Vào phòng thành công!</color>");
-                
-                // Do đã ở cùng scene Lobby, ta chỉ cần ẩn màn hình Menu đi
-                gameObject.SetActive(false);
+                if (_CrazyLobby != null) _CrazyLobby.SetActive(false);
             }
             else
             {
-                Debug.LogError($"<color=red>Lỗi không thể tham gia: {result.ShutdownReason}</color>");
+                if (_room_panel != null) _room_panel.SetActive(false);
+
+                if (mode == GameMode.Client && string.IsNullOrEmpty(roomID))
+                {
+                    Debug.LogError("<color=red>Không tìm thấy phòng Public nào đang mở! Hãy tự tạo phòng mới.</color>");
+                }
+                else
+                {
+                    Debug.LogError($"<color=red>Lỗi không thể tham gia: {result.ShutdownReason}</color>");
+                }
             }
         }
     }

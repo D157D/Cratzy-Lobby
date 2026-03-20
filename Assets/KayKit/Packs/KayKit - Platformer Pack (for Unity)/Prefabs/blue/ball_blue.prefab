@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: -7511558181221131132}
   - component: {fileID: -391568298480614177}
   - component: {fileID: 2178709924433191543}
-  - component: {fileID: -3341126409961326188}
   m_Layer: 0
   m_Name: ball_blue
   m_TagString: Untagged
@@ -105,8 +104,7 @@ MonoBehaviour:
   ObjectInterest: 1
   Flags: 262145
   NestedObjects: []
-  NetworkedBehaviours:
-  - {fileID: -3341126409961326188}
+  NetworkedBehaviours: []
   ForceRemoteRenderTimeframe: 0
 --- !u!135 &2178709924433191543
 SphereCollider:
@@ -129,17 +127,3 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 1
   m_Center: {x: -0.00000017881393, y: 0, z: 0.00000014901161}
---- !u!114 &-3341126409961326188
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 919132149155446097}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2379203fdd637944f8c11a7d779a3a97, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  itemName: Ball
-  amount: 1

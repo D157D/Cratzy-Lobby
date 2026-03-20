@@ -1,37 +1,16 @@
-using Fusion;
-using UnityEngine;
-
-namespace Crazy_Lobby.Items
+namespace Crazy_Lobby.Item
 {
-    public class Item : NetworkBehaviour
+    public abstract class Items
     {
-        public string itemName = "Ball";
-        public int amount = 1;
-
-        public override void Spawned()
+        public float Timer {get; protected set;}
+        public string Description {get; protected set;}
+        public string Ability {get; protected set;}
+        public Items(string _ability, float _timer, string _des)
         {
-            
+            Timer = _timer;
+            Ability = _ability;
+            Description = _des;
         }
-
-        public override void FixedUpdateNetwork()
-        {
-            transform.Rotate(0, 90 * Runner.DeltaTime, 0);
-        }
-
-        private void OnTriggerEnter(Collider collider)
-        {
-            if (!HasStateAuthority) return;
-
-            if(collider.CompareTag("Player"))
-            {
-                PlayerController player = collider.GetComponentInParent<PlayerController>();
-                if (player != null)
-                {
-                    player.RPC_PickUpItem(itemName, amount);
-                    
-                    Runner.Despawn(Object);
-                }
-            }
-        }
+        public abstract void Use(Items item);
     }
 }

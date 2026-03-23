@@ -1,6 +1,8 @@
+using Fusion;
+
 namespace Crazy_Lobby.Item
 {
-    public abstract class Items
+    public abstract class Items : NetworkBehaviour
     {
         public float Timer {get; protected set;}
         public string Description {get; protected set;}
@@ -11,6 +13,6 @@ namespace Crazy_Lobby.Item
             Ability = _ability;
             Description = _des;
         }
-        public abstract void Use(Items item);
+        public abstract void Use(PlayerController player);
     }
 }

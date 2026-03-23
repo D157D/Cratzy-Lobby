@@ -15,6 +15,8 @@ GameObject:
   - component: {fileID: -136467381510503303}
   - component: {fileID: -5872967788948090295}
   - component: {fileID: -1348177609146104739}
+  - component: {fileID: -7532528536017543499}
+  - component: {fileID: 8167449796253431847}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -109,6 +111,8 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: -136467381510503303}
   - {fileID: -5872967788948090295}
+  - {fileID: -7532528536017543499}
+  - {fileID: 8167449796253431847}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &-136467381510503303
 MonoBehaviour:
@@ -174,9 +178,36 @@ MonoBehaviour:
   m_ActionEvents: []
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
-  m_DefaultActionMap: 
+  m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
+--- !u!114 &-7532528536017543499
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3534587539486237955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48c7c0384babe384fa52faffcd1b8f3a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lockRange: 20
+  lockKey: 323
+  targetOffset: {x: 0, y: 1.5, z: 0}
+--- !u!114 &8167449796253431847
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3534587539486237955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474005e66c5246947b5e8cc7846b6548, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &2363132926155832546
 PrefabInstance:
   m_ObjectHideFlags: 0

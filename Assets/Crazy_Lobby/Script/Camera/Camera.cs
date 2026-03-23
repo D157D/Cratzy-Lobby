@@ -21,8 +21,15 @@ public class Camera : MonoBehaviour
     private float _yaw;
     private float _pitch;
     private bool _isReversedView = false;
+    public bool IsTargetLocked = false; // Cờ chặn xoay camera
 
     public float CurrentYaw => _yaw;
+
+    public void SetYawPitch(float yaw, float pitch)
+    {
+        _yaw = yaw;
+        _pitch = pitch > 180f ? pitch - 360f : pitch;
+    }
 
     private void Start()
     {
@@ -50,9 +57,21 @@ public class Camera : MonoBehaviour
             }
         }
 
-        if (_isSpectating && Input.GetMouseButtonDown(0))
+        if (_isSpectating)
         {
-            SwitchToNextSpectatorTarget();
+            if (Input.GetMouseButtonDown(0))
+            {
+                SwitchToNextSpectatorTarget();
+            }
+            else if (_currentTarget != null)
+            {
+                var targetPC = _currentTarget.GetComponent<PlayerController>();
+                // Tự động nhảy sang mục tiêu khác nếu người mình đang xem cũng bị chết
+                if (targetPC != null && targetPC.IsDead)
+                {
+                    SwitchToNextSpectatorTarget();
+                }
+            }
         }
 
         if (_currentTarget != null && TargetCamera != null)
@@ -62,13 +81,17 @@ public class Camera : MonoBehaviour
                 _isReversedView = !_isReversedView;
             }
 
-            float mouseX = Input.GetAxis("Mouse X") * Sensitivity;
-            float mouseY = Input.GetAxis("Mouse Y") * Sensitivity;
+            // Chỉ nhận input xoay chuột khi không bị khóa mục tiêu
+            if (!IsTargetLocked)
+            {
+                float mouseX = Input.GetAxis("Mouse X") * Sensitivity;
+                float mouseY = Input.GetAxis("Mouse Y") * Sensitivity;
 
-            _yaw += mouseX;
-            _pitch -= mouseY;
-            
-            _pitch = Mathf.Clamp(_pitch, PitchLimits.x, PitchLimits.y);
+                _yaw += mouseX;
+                _pitch -= mouseY;
+                
+                _pitch = Mathf.Clamp(_pitch, PitchLimits.x, PitchLimits.y);
+            }
 
             Quaternion rotation = Quaternion.Euler(_pitch, _yaw, 0);
 
@@ -87,6 +110,8 @@ public class Camera : MonoBehaviour
                 TargetCamera.transform.position = position;
             }
         }
+
+        
     }
 
 
@@ -126,11 +151,11 @@ public class Camera : MonoBehaviour
     private void RefreshSpectatorList()
     {
         _spectatablePlayers.Clear();
-        GameObject[] players = GameObject.FindGameObjectsWithTag(PlayerTag);
         
-        foreach (var p in players)
+        // Tận dụng ActivePlayers để tối ưu, lọc ra người chơi khác bản thân đang còn sống
+        foreach (var p in PlayerController.ActivePlayers)
         {
-            if (p.transform != _localPlayer)
+            if (p != null && p.transform != _localPlayer && !p.IsDead)
             {
                 _spectatablePlayers.Add(p.transform);
             }

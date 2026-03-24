@@ -3005,7 +3005,6 @@ GameObject:
   - component: {fileID: 115302662}
   - component: {fileID: 115302661}
   - component: {fileID: 115302663}
-  - component: {fileID: 115302664}
   m_Layer: 0
   m_Name: Directional Light
   m_TagString: Untagged
@@ -3116,22 +3115,6 @@ MonoBehaviour:
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
   m_SoftShadowQuality: 0
---- !u!114 &115302664
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 115302660}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d73b0a95be81246699cf0d9ecdc01863, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  PreferredRunner: 0
-  Components:
-  - {fileID: 115302661}
-  _guid: d830aecd-bc2d-43fe-
 --- !u!4 &117671241 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 3194bdc8cd6a5bd499d8f86dcd1da15b, type: 3}
@@ -29245,7 +29228,6 @@ GameObject:
   - component: {fileID: 1440410984}
   - component: {fileID: 1440410987}
   - component: {fileID: 1440410989}
-  - component: {fileID: 1440410990}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -29389,22 +29371,6 @@ MonoBehaviour:
   Sensitivity: 2
   PitchLimits: {x: -30, y: 60}
   PlayerTag: Player
---- !u!114 &1440410990
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1440410983}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d73b0a95be81246699cf0d9ecdc01863, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  PreferredRunner: 0
-  Components:
-  - {fileID: 1440410984}
-  _guid: 4669234b-028a-46dd-
 --- !u!1001 &1440638436
 PrefabInstance:
   m_ObjectHideFlags: 0

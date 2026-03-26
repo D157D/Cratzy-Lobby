@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Crazy_Lobby.Player;
 using Crazy_Lobby.Player.Components;
+using Crazy_Lobby.Item;
 using Crazy_Lobby.UI;
 using Fusion;
 using Fusion.Sockets;
@@ -12,28 +13,36 @@ public struct NetworkInputData : INetworkInput
     public Vector2 Movement;
     public float CameraYaw;
     public NetworkBool Jump;
+    public NetworkBool UseItem;
 }
 [RequireComponent(typeof(NetworkCharacterController))]
 [RequireComponent(typeof(NetworkObject))]
 public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 {
     [Header("Movement Settings")]
-    public float jumpForce = 10f;
-    public float maxSpeed = 10f; 
-    public float acceleration = 100f; 
-    public float braking = 100f; 
+    private float jumpForce = 10f;
+    private float maxSpeed = 10f; 
+    private float acceleration = 100f; 
+    private float braking = 100f; 
 
     [Header("Interaction Settings")]
     public LayerMask platformLayer; 
+
+    [Header("Item Settings")]
+    private float itemCooldown = 3f;
 
     private NetworkCharacterController _ncc;
     private CharacterAnimation _characterAnimation;
     private PlayerMovement _playerMovement;
     private PlayerInteraction _playerInteraction;
+    private PlayerItemUsage _playerItemUsage;
 
     private Vector2 _localMoveInput; 
     private bool _jumpPressed;
+    private bool _useItemPressed;
 
+    [Networked] private TickTimer ItemCooldownTimer { get; set; }
+    
     public NetworkId CurrentTargetId { get; internal set; }
     public bool IsDead { get; internal set; }
      public static readonly List<PlayerController> ActivePlayers = new List<PlayerController>();
@@ -46,9 +55,12 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
   
     public override void Spawned()
     {
+        ActivePlayers.Add(this);
+
         // Initialize player components
         _playerMovement = new PlayerMovement(_ncc, _characterAnimation, transform, Runner, jumpForce, maxSpeed, acceleration, braking);
         _playerInteraction = new PlayerInteraction(Object, transform, platformLayer);
+        _playerItemUsage = new PlayerItemUsage(this);
 
         if (HasInputAuthority)
         {
@@ -83,6 +95,8 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 
     public override void Despawned(NetworkRunner runner, bool hasState)
     {
+        ActivePlayers.Remove(this);
+
         if (HasInputAuthority)
         {
             Runner.RemoveCallbacks(this);
@@ -99,11 +113,24 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
         if (value.isPressed) _jumpPressed = true;
     }
 
+    public void OnUseItem(InputValue value)
+    {
+        Debug.Log("1. Unity đã nhận tín hiệu bấm phím E!");
+        if (value.isPressed) _useItemPressed = true;
+    }
+
     public override void FixedUpdateNetwork()
     {
         if (GetInput(out NetworkInputData data))
         {
             _playerMovement.ProcessInput(data);
+
+            if (data.UseItem && ItemCooldownTimer.ExpiredOrNotRunning(Runner))
+            {
+                Debug.Log("2. Gửi lệnh sử dụng vật phẩm lên mạng (Đã qua bước hồi chiêu)");
+                _playerItemUsage.UseFirework();
+                ItemCooldownTimer = TickTimer.CreateFromSeconds(Runner, itemCooldown);
+            }
         }
 
         _playerInteraction.CheckPlatformBeneath();
@@ -132,9 +159,11 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
         }
 
         data.Jump = _jumpPressed;
+        data.UseItem = _useItemPressed;
 
         input.Set(data); 
         _jumpPressed = false;
+        _useItemPressed = false;
     }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]

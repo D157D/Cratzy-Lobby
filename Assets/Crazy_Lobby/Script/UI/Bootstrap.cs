@@ -1,50 +1,20 @@
 using Fusion;
 using UnityEngine;
-using UnityEngine.UI;
 
-public class BootstrapUI : FusionBootstrap
+public class Bootstrap : FusionBootstrap
 {
-    public GameObject networkPanel;
-    public Button hostButton;
-    public Button clientButton;
-    public Button serverButton;
-    public GameObject lobbyPanel;
-    public Button playButton;
-    public string gameSceneName = "Map"; 
+    private BootstrapUIManager _uiManager;
     private NetworkRunner _runner;
 
     private void Start()
     {
-        // Gắn sự kiện (Listener) cho các nút trên Canvas UI
-        if (hostButton != null) hostButton.onClick.AddListener(() => StartRoom(GameMode.Host));
-        if (clientButton != null) clientButton.onClick.AddListener(() => StartRoom(GameMode.Client));
-        if (serverButton != null) serverButton.onClick.AddListener(() => StartRoom(GameMode.Server));
-
-        // Gắn sự kiện cho nút Play
-        if (playButton != null) playButton.onClick.AddListener(OnPlayClicked);
-
-        // Đảm bảo Panel UI kết nối được bật, và ẩn Panel sảnh chờ khi bắt đầu
-        if (networkPanel != null) networkPanel.SetActive(true);
-        if (lobbyPanel != null) lobbyPanel.SetActive(false);
-    }
-
-    private void Update()
-    {
-        // Nhấn Enter để bắt đầu game nếu đang ở trong Lobby và có quyền (nút Play hiện)
-        if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+        if(BootstrapUIManager.Instance != null)
         {
-            if (playButton != null && playButton.gameObject.activeInHierarchy)
-            {
-                OnPlayClicked();
-            }
+            _uiManager = BootstrapUIManager.Instance;
         }
     }
-
-    private async void StartRoom(GameMode mode)
+    public async void StartRoom(GameMode mode)
     {
-        // Ẩn UI kết nối ngay khi bấm
-        if (networkPanel != null) networkPanel.SetActive(false);
-
         if (_runner == null)
         {
             _runner = gameObject.AddComponent<NetworkRunner>();
@@ -69,23 +39,17 @@ public class BootstrapUI : FusionBootstrap
         if (result.Ok)
         {
             Debug.Log($"<color=green>Vào phòng thành công! Mode: {mode}</color>");
-            
-            if (lobbyPanel != null) lobbyPanel.SetActive(true);
-            
-            // Nếu là Client thì ẩn nút Play đi, chỉ Host mới có quyền bấm
-            if (playButton != null) playButton.gameObject.SetActive(_runner.IsServer);
+            if (_uiManager != null) _uiManager.ShowLobby(_runner.IsServer);
         }
         else
         {
             Debug.LogError($"Kết nối thất bại: {result.ShutdownReason}");
-            if (networkPanel != null) networkPanel.SetActive(true);
+            if (_uiManager != null) _uiManager.ShowConnectionUI();
         }
     }
 
-    private void OnPlayClicked()
+    public void OnPlayClicked(string gameSceneName)
     {
-        
-
         if (_runner != null && _runner.IsServer)
         {
             // (Tùy chọn) Ẩn phòng không cho ai vào thêm khi game đã bắt đầu

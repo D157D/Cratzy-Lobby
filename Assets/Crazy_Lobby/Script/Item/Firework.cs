@@ -7,7 +7,36 @@ namespace Cratzy_Lobby.Item
     public class Firework : Items
     {
         public Firework() : base("Firework", 5f, "Shoot a firework directly to other player") { }
+        // public override void FixedUpdateNetwork()
+        // {
+        //     if (data.UseItem)
+        //     {
+        //         // Nếu đang khoá mục tiêu, lập tức xoay mặt nhân vật về phía mục tiêu
+        //         if (CurrentTargetId.IsValid)
+        //         {
+        //             NetworkObject targetObj = Runner.FindObject(CurrentTargetId);
+        //             if (targetObj != null)
+        //             {
+        //                 Vector3 dirToTarget = targetObj.transform.position - transform.position;
+        //                 dirToTarget.y = 0; // Cố định trục Y để nhân vật không bị ngửa ra sau
+        //                 if (dirToTarget != Vector3.zero)
+        //                 {
+        //                     transform.rotation = Quaternion.LookRotation(dirToTarget);
+        //                 }
+        //             }
+        //         }
 
+        //         Collider[] hitColliders = Physics.OverlapSphere(transform.position, 2f);
+        //         foreach (var hitCollider in hitColliders)
+        //         {
+        //             if (hitCollider.TryGetComponent<Crazy_Lobby.Item.Items>(out var nearbyItem))
+        //             {
+        //                 nearbyItem.Use(this);
+        //                 break; 
+        //             }
+        //         }
+        //     }
+        // }
         public override void Use(PlayerController player)
         {
             if (HasStateAuthority)

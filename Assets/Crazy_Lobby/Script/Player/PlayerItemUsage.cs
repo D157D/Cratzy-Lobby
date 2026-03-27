@@ -36,6 +36,8 @@ namespace Crazy_Lobby.Player.Components
                         if (firework != null)
                         {
                             firework.TargetId = targetId;
+                            // Gán OwnerId để đạn biết ai là người bắn và bỏ qua va chạm với người đó
+                            firework.OwnerId = _player.Object.Id;
                         }
                     });
             }

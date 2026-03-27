@@ -38,7 +38,6 @@ public class UserProfileResponse { public string username; }
 public class BackendManager : MonoBehaviour
 {
     public static BackendManager Instance;
-    public static event Action OnForcedLogout;
     private string baseUrl = "http://127.0.0.1:5113/api";
     private string currentToken = "";
     private Coroutine sessionCheckCoroutine;

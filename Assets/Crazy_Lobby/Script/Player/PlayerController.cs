@@ -36,6 +36,7 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
     private PlayerMovement _playerMovement;
     private PlayerInteraction _playerInteraction;
     private PlayerItemUsage _playerItemUsage;
+    private PlayerHealth _playerHealth;
 
     private Vector2 _localMoveInput; 
     private bool _jumpPressed;
@@ -50,12 +51,19 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
     private void Awake()
     {
         _ncc = GetComponent<NetworkCharacterController>();
+        _playerHealth = GetComponent<PlayerHealth>();
         _characterAnimation = new CharacterAnimation(GetComponentInChildren<Animator>());
     }
   
     public override void Spawned()
     {
         ActivePlayers.Add(this);
+
+        if (_playerHealth != null)
+        {
+            _playerHealth.OnDeath += HandleDeath;
+        }
+        HandleInitialDeathState();
 
         // Initialize player components
         _playerMovement = new PlayerMovement(_ncc, _characterAnimation, transform, Runner, jumpForce, maxSpeed, acceleration, braking);
@@ -97,6 +105,11 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
     {
         ActivePlayers.Remove(this);
 
+        if (_playerHealth != null)
+        {
+            _playerHealth.OnDeath -= HandleDeath;
+        }
+
         if (HasInputAuthority)
         {
             Runner.RemoveCallbacks(this);
@@ -121,6 +134,8 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 
     public override void FixedUpdateNetwork()
     {
+        if (IsDead) return;
+
         if (GetInput(out NetworkInputData data))
         {
             _playerMovement.ProcessInput(data);
@@ -138,6 +153,8 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 
     public override void Render()
     {
+        if (IsDead) return;
+
         _playerMovement.UpdateAnimations();
     }
     public void OnInput(NetworkRunner runner, NetworkInput input)
@@ -175,6 +192,31 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
         {
             ItemUIManager.Instance.ShowItemPickup(itemName, amount);
         }
+    }
+
+    private void HandleDeath()
+    {
+        if (IsDead) return; // Already dead, do nothing.
+
+        IsDead = true;
+        _ncc.enabled = false; // Disable character controller to stop movement
+
+        // TODO: Play death animation via _characterAnimation
+        Debug.Log($"Player {Object.Id} handling death on client.");
+
+        if (HasInputAuthority)
+        {
+            var cam = UnityEngine.Camera.main.GetComponent<Camera>();
+            if (cam != null)
+            {
+                cam.OnPlayerDied();
+            }
+        }
+    }
+
+    private void HandleInitialDeathState()
+    {
+        if (_playerHealth != null && _playerHealth.IsDead) HandleDeath();
     }
 
     public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)

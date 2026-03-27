@@ -7,8 +7,6 @@ public class PlayerRunner : NetworkBehaviour, IPlayerJoined, IPlayerLeft
     public NetworkPrefabRef _player;
     // public NetworkPrefabRef _enemyPrefab;
 
-    private bool _hasSpawnedEnemy = false;
-
     public void PlayerJoined(PlayerRef player)
     {
         if (Runner.IsServer)

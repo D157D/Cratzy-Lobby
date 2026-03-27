@@ -3023,11 +3023,8 @@ MonoBehaviour:
   _pass_register: {fileID: 8719491880680569761}
   _login_panel: {fileID: 3520388040256087022}
   _register_panel: {fileID: 3465963880995607842}
-  _main_panel: {fileID: 7930210079325900888}
-  _btnQuickJoin: {fileID: 1839573717859962488}
-  _btnCreateRoom: {fileID: 2268808120808049312}
-  _btnJoinByID: {fileID: 5319353999864915712}
-  _roomIDInput: {fileID: 8214487464229450828}
+  _CrazyLobby: {fileID: 0}
+  _room_panel: {fileID: 0}
 --- !u!114 &1241430496865057533
 MonoBehaviour:
   m_ObjectHideFlags: 0

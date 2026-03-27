@@ -1,18 +1,26 @@
 using Fusion;
 using UnityEngine;
 
-public class Bootstrap : FusionBootstrap
+public class Bootstrap : MonoBehaviour 
 {
     private BootstrapUIManager _uiManager;
     private NetworkRunner _runner;
 
+    private void Awake()
+    {
+        DontDestroyOnLoad(this.gameObject);
+    }
+
     private void Start()
     {
+        Application.targetFrameRate = 60;
+
         if(BootstrapUIManager.Instance != null)
         {
             _uiManager = BootstrapUIManager.Instance;
         }
     }
+
     public async void StartRoom(GameMode mode)
     {
         if (_runner == null)
@@ -21,16 +29,14 @@ public class Bootstrap : FusionBootstrap
             _runner.ProvideInput = true;
         }
 
-        // Thêm NetworkSceneManagerDefault để có thể đồng bộ Scene cho tất cả người chơi
         var sceneManager = gameObject.GetComponent<NetworkSceneManagerDefault>();
         if (sceneManager == null) sceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>();
 
         var args = new StartGameArgs()
         {
             GameMode = mode,
-            SessionName = "Room_1234", // Nếu có ô nhập ID, bạn có thể truyền ID vào đây
+            SessionName = "Room_1234",
             SceneManager = sceneManager,
-            // Đặt scene hiện tại để các Client khi tham gia không bị load lại, chờ ở sảnh
             Scene = SceneRef.FromIndex(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex)
         };
 
@@ -52,14 +58,12 @@ public class Bootstrap : FusionBootstrap
     {
         if (_runner != null && _runner.IsServer)
         {
-            // (Tùy chọn) Ẩn phòng không cho ai vào thêm khi game đã bắt đầu
             _runner.SessionInfo.IsOpen = false;
             _runner.SessionInfo.IsVisible = false;
 
             int buildIndex = UnityEngine.SceneManagement.SceneUtility.GetBuildIndexByScenePath(gameSceneName);
             if (buildIndex >= 0)
             {
-                // Sử dụng Runner.LoadScene để ép tất cả Client đang ở Lobby chuyển sang Scene Game
                 _runner.LoadScene(SceneRef.FromIndex(buildIndex));
             }
             else

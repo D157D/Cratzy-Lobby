@@ -22,6 +22,13 @@ namespace Crazy_Lobby.Player.Components
             Debug.Log("3. Host/Server đang xử lý bắn pháo hoa...");
             NetworkId targetId = FindClosestPlayerTarget();
 
+            // Bắt buộc phải có mục tiêu mới cho phép bắn pháo hoa
+            if (!targetId.IsValid)
+            {
+                Debug.LogWarning("Không có mục tiêu trong tầm, hủy thao tác bắn pháo hoa.");
+                return;
+            }
+
             if (ItemManager.Instance != null && ItemManager.Instance.fireworkProjectilePrefab.IsValid)
             {
                 Debug.Log($"4. Sinh đạn thành công! Mục tiêu khoá mục tiêu ID: {targetId}");

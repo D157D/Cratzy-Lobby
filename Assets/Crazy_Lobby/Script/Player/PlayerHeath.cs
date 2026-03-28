@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class PlayerHealth : NetworkBehaviour
 {
-    [System.Serializable]
     public struct PlayerHealthStruct : INetworkStruct
     {
         public int maxHealth;
@@ -31,7 +30,7 @@ public class PlayerHealth : NetworkBehaviour
 
         if (HasStateAuthority)
         {
-            var hp = new PlayerHealthStruct { maxHealth = 100, currentHealth = 100 };
+            var hp = new PlayerHealthStruct { maxHealth = 5, currentHealth = 5 };
             playerHealthStruct = hp;
         }
 

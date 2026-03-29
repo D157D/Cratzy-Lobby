@@ -92,7 +92,7 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
             else
             {
                 // Tắt PlayerInput trên các nhân vật của người chơi khác (Proxy)
-                // để tránh việc chúng giành quyền điều khiển bàn phím/chuột của máy bạn
+                // để tránh việc chúng giành quyền điều khiển bàn phím/chuột của máy
                 PlayerInput playerInput = GetComponent<PlayerInput>();
                 if (playerInput != null)
                 {
@@ -128,7 +128,6 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 
     public void OnUseItem(InputValue value)
     {
-        Debug.Log("1. Unity đã nhận tín hiệu bấm phím E!");
         if (value.isPressed) _useItemPressed = true;
     }
 
@@ -140,11 +139,16 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
         {
             _playerMovement.ProcessInput(data);
 
-            if (data.UseItem && ItemCooldownTimer.ExpiredOrNotRunning(Runner))
+            if (data.UseItem)
             {
-                Debug.Log("2. Gửi lệnh sử dụng vật phẩm lên mạng (Đã qua bước hồi chiêu)");
-                _playerItemUsage.UseFirework();
-                ItemCooldownTimer = TickTimer.CreateFromSeconds(Runner, itemCooldown);
+                    if(HasStateAuthority) 
+                    {
+                        if (ItemCooldownTimer.ExpiredOrNotRunning(Runner))
+                        {
+                            _playerItemUsage.UseFirework();
+                            ItemCooldownTimer = TickTimer.CreateFromSeconds(Runner, itemCooldown);
+                        }
+                    }
             }
         }
 
@@ -183,6 +187,7 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
         _useItemPressed = false;
     }
 
+  
     [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
     public void RPC_PickUpItem(string itemName, int amount)
     {

@@ -1,10 +1,7 @@
 fileFormatVersion: 2
 guid: 56b4a0ca8daa0154387f58eb3154ab99
-PrefabImporter:
-  externalObjects: {}
-  userData: 
-  assetBundleName: 
-  assetBundleVariant: 
+labels:
+- FusionPrefab
 AssetOrigin:
   serializedVersion: 1
   productId: 290679
@@ -12,3 +9,8 @@ AssetOrigin:
   packageVersion: 2.0.1
   assetPath: Assets/KayKit/Characters/KayKit - Adventurers (for Unity)/Prefabs/Characters/Barbarian.prefab
   uploadId: 831988
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

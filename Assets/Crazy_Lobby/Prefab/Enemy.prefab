@@ -105,7 +105,8 @@ MonoBehaviour:
   SortKey: 3098557273
   ObjectInterest: 1
   Flags: 262145
-  NestedObjects: []
+  NestedObjects:
+  - {fileID: 4878112638478793375}
   NetworkedBehaviours:
   - {fileID: -6711145401429750024}
   - {fileID: -3361772075137135526}
@@ -146,6 +147,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentMode: 1
   patrolRadius: 20
+  patrolTimeout: 10
   visionRange: 10
   moveSpeed: 3
   acceleration: 100
@@ -229,6 +231,14 @@ PrefabInstance:
       propertyPath: m_TagString
       value: Untagged
       objectReference: {fileID: 0}
+    - target: {fileID: 7167761902520698493, guid: 3dcb7923871a02e4288f8c602d3ab3f3, type: 3}
+      propertyPath: Flags
+      value: 262145
+      objectReference: {fileID: 0}
+    - target: {fileID: 7167761902520698493, guid: 3dcb7923871a02e4288f8c602d3ab3f3, type: 3}
+      propertyPath: SortKey
+      value: 1798081804
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -239,3 +249,14 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 3dcb7923871a02e4288f8c602d3ab3f3, type: 3}
   m_PrefabInstance: {fileID: 2363132926155832546}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &4878112638478793375 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7167761902520698493, guid: 3dcb7923871a02e4288f8c602d3ab3f3, type: 3}
+  m_PrefabInstance: {fileID: 2363132926155832546}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

@@ -12,7 +12,7 @@ namespace Crazy_Lobby.Player
 
         private Transform _targetPlayer;
         private UnityEngine.Camera _mainCamera;
-        private global::Camera _cameraScript;
+        private global::CameraP _cameraScript;
 
         public Transform TargetPlayer => _targetPlayer;
 
@@ -21,7 +21,7 @@ namespace Crazy_Lobby.Player
             if (HasInputAuthority)
             {
                 _mainCamera = UnityEngine.Camera.main;
-                _cameraScript = FindObjectOfType<global::Camera>();
+                _cameraScript = FindObjectOfType<global::CameraP>();
             }
         }
 
@@ -62,7 +62,7 @@ namespace Crazy_Lobby.Player
                 return;
             }
 
-            if (_cameraScript == null) _cameraScript = FindObjectOfType<global::Camera>();
+            if (_cameraScript == null) _cameraScript = FindObjectOfType<global::CameraP>();
 
             if (_cameraScript != null) _cameraScript.IsTargetLocked = true; 
 

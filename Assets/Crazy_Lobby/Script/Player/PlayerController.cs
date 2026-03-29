@@ -164,7 +164,7 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 
         if (UnityEngine.Camera.main != null)
         {
-            var customCamera = UnityEngine.Camera.main.GetComponent<Camera>();
+            var customCamera = UnityEngine.Camera.main.GetComponent<CameraP>();
             if (customCamera != null)
             {
                 data.CameraYaw = customCamera.CurrentYaw;
@@ -206,7 +206,7 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 
         if (HasInputAuthority)
         {
-            var cam = UnityEngine.Camera.main.GetComponent<Camera>();
+            var cam = UnityEngine.Camera.main.GetComponent<CameraP>();
             if (cam != null)
             {
                 cam.OnPlayerDied();

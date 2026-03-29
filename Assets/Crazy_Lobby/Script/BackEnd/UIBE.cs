@@ -2,7 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class UIManager : MonoBehaviour
+public class UIManagerBE : MonoBehaviour
 {
     [Header("Register")]
     public TMP_InputField usernameInput;

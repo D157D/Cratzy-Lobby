@@ -10,17 +10,20 @@ namespace Crazy_Lobby.Item
         public float speed = 15f; 
         public float turnSpeed = 5f; 
         public float lifeTime = 5f;
+        public float shootUpDuration = 0.5f;
 
         [Networked] public NetworkId OwnerId { get; set; }
         [Networked] public NetworkId TargetId { get; set; }
         
         [Networked] private TickTimer LifeTimer { get; set; }
+        [Networked] private TickTimer ShootUpTimer { get; set; }
 
         public override void Spawned()
         {
             if (HasStateAuthority)
             {
                 LifeTimer = TickTimer.CreateFromSeconds(Runner, lifeTime);
+                ShootUpTimer = TickTimer.CreateFromSeconds(Runner, shootUpDuration);
             }
 
             if (OwnerId.IsValid)
@@ -50,7 +53,7 @@ namespace Crazy_Lobby.Item
                 return;
             }
 
-            if (TargetId.IsValid)
+            if (TargetId.IsValid && ShootUpTimer.Expired(Runner))
             {
                 NetworkObject targetObj = Runner.FindObject(TargetId);
                 if (targetObj != null)
@@ -89,7 +92,7 @@ namespace Crazy_Lobby.Item
 
         public override void Render()
         {
-            if (!HasStateAuthority && !HasInputAuthority && TargetId.IsValid)
+            if (!HasStateAuthority && !HasInputAuthority && TargetId.IsValid && ShootUpTimer.Expired(Runner))
             {
                 NetworkObject targetObj = Runner.FindObject(TargetId);
                 if (targetObj != null)

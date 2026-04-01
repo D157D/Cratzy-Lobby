@@ -5,6 +5,9 @@ public class SpawnPlayer : NetworkBehaviour, IPlayerJoined
 {
     public NetworkPrefabRef _player;
     public Transform[] spawnPoints;
+    public Transform _enemySpawn;
+    public NetworkPrefabRef _enemy;
+    private bool IsSpawned;
 
     public override void Spawned()
     {
@@ -15,6 +18,11 @@ public class SpawnPlayer : NetworkBehaviour, IPlayerJoined
             if (Runner.GetPlayerObject(player) == null)
             {
                 SpawnPlayerCharacter(player);
+                if(!IsSpawned)
+                {
+                    Runner.Spawn(_enemy, _enemySpawn.position, Quaternion.identity);
+                    IsSpawned = true;
+                }
             }
         }
     }

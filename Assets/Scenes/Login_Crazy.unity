@@ -2207,7 +2207,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   RunnerPrefab: {fileID: 169597747}
-  StartMode: 2
+  StartMode: 0
   AutoStartAs: 2
   AutoHideGUI: 1
   AutoClients: 1
@@ -4172,6 +4172,9 @@ MonoBehaviour:
     RawGuidValue: e6b4aa58fdbe5ce4f8f1ff315948afed
   spawnPoints:
   - {fileID: 832652012}
+  _enemySpawn: {fileID: 2076217161}
+  _enemy:
+    RawGuidValue: ab3921f8f51d74248b355ffdef10ee0b
 --- !u!64 &840378098
 MeshCollider:
   m_ObjectHideFlags: 0

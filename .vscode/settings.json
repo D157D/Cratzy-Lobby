@@ -56,5 +56,8 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "Crazy-Lobby.sln"
+    "dotnet.defaultSolution": "Crazy-Lobby.sln",
+    "dotrush.roslyn.projectOrSolutionFiles": [
+        "f:\\Code\\Game\\Crazy-Lobby\\Cratzy-Lobby.sln"
+    ]
 }

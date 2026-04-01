@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 using Crazy_Lobby.Player;
+using Crazy_Lobby.Item;
 using Fusion;
 
 [RequireComponent(typeof(NetworkCharacterController))]
@@ -28,11 +29,16 @@ public class EnemyPatrol : NetworkBehaviour
     public float acceleration = 100f;
     public float braking = 100f;
 
-    private Transform player;
+    private Transform targetPlayer;
     private bool isChasing = false;
     private Vector3[] fixedPoints = new Vector3[3];
     private int currentPointIndex = 0;
     private float currentPatrolTimer = 0f;
+
+    [Header("Attack Settings")]
+    public float attackRange = 10f;
+    public float attackCooldown = 3f;
+    [Networked] private TickTimer attackTimer { get; set; }
 
     public override void Spawned()
     {
@@ -41,9 +47,6 @@ public class EnemyPatrol : NetworkBehaviour
         _characterAnimation = new CharacterAnimation(GetComponentInChildren<Animator>());
         agent.updateRotation = false; // Tắt tự động xoay để tự điều khiển bằng code
         agent.updatePosition = false; // Tắt tự động di chuyển để NetworkCharacterController quản lý
-
-        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj != null) player = playerObj.transform;
 
         _ncc.maxSpeed = moveSpeed;
         _ncc.acceleration = acceleration;
@@ -77,39 +80,16 @@ public class EnemyPatrol : NetworkBehaviour
         if (agent.hasPath || agent.pathPending)
         {
             Vector3 targetDir = agent.steeringTarget - transform.position;
-            targetDir.y = 0f; // Bỏ qua trục y để nhân vật không bị nghiêng lên/xuống
+            targetDir.y = 0f; 
             if (targetDir.sqrMagnitude > 0.001f)
             {
                 moveDirection = targetDir.normalized;
             }
         }
 
-        if (player != null)
+        if (isChasing && targetPlayer != null)
         {
-            float distance = Vector3.Distance(transform.position, player.position);
-
-            if (distance <= visionRange)
-            {
-                isChasing = true;
-                agent.SetDestination(player.position);
-            }
-            else
-            {
-                // Nếu vừa mới mất dấu người chơi
-                if (isChasing)
-                {
-                    isChasing = false;
-                    currentPatrolTimer = 0f; // Reset lại timer khi bắt đầu tuần tra lại
-                    if (currentMode == PatrolMode.Random)
-                    {
-                        SetRandomDestination();
-                    }
-                    else
-                    {
-                        agent.SetDestination(fixedPoints[currentPointIndex]);
-                    }
-                }
-            }
+            AttackPlayerIfPossible(targetPlayer);
         }
 
         if (!isChasing && !agent.pathPending)
@@ -148,6 +128,49 @@ public class EnemyPatrol : NetworkBehaviour
         _ncc.Move(moveDirection);
     }
 
+    private void AttackPlayerIfPossible(Transform targetTransform)
+    {
+        if (targetTransform == null) return;
+
+        float distance = Vector3.Distance(transform.position, targetTransform.position);
+        
+        if (distance <= attackRange && attackTimer.ExpiredOrNotRunning(Runner))
+        {
+            Vector3 origin = transform.position + Vector3.up;
+            Vector3 targetPos = targetTransform.position + Vector3.up;
+            Vector3 direction = (targetPos - origin).normalized;
+
+            // Kiểm tra raycast theo yêu cầu: kiểm tra player bằng raycast
+            if (Physics.Raycast(origin, direction, out RaycastHit hit, attackRange))
+            {
+                // Kiểm tra xem tia raycast có trúng player không
+                var hitPlayer = hit.transform.GetComponentInParent<NetworkCharacterController>();
+                if (hitPlayer != null && hitPlayer.transform == targetTransform)
+                {
+                    // Tấn công: Spawn Firework giống như Player
+                    if (ItemManager.Instance != null && ItemManager.Instance.fireworkProjectilePrefab.IsValid)
+                    {
+                        Runner.Spawn(ItemManager.Instance.fireworkProjectilePrefab,
+                            origin, 
+                            Quaternion.identity,
+                            Object.StateAuthority,
+                            (runner, obj) =>
+                            {
+                                var firework = obj.GetComponent<FireworkProjectile>();
+                                if (firework != null)
+                                {
+                                    firework.TargetId = hitPlayer.Object.Id;
+                                    firework.OwnerId = Object.Id;
+                                }
+                            });
+                    }
+
+                    attackTimer = TickTimer.CreateFromSeconds(Runner, attackCooldown);
+                }
+            }
+        }
+    }
+
     private void FindAndChaseClosestPlayer()
     {
         // Sử dụng OverlapSphere để tìm các đối tượng trong tầm nhìn
@@ -159,8 +182,8 @@ public class EnemyPatrol : NetworkBehaviour
 
         foreach (var col in playersInRadius)
         {
-            // Kiểm tra xem đối tượng có phải là người chơi không (bằng cách tìm component NetworkCharacterController)
-            if (col.TryGetComponent<NetworkCharacterController>(out _))
+            // Kiểm tra xem đối tượng có phải là người chơi không bằng cách kiểm tra Tag
+            if (col.CompareTag("Player"))
             {
                 float distanceSqr = (transform.position - col.transform.position).sqrMagnitude;
                 if (distanceSqr < closestDistanceSqr)
@@ -175,10 +198,12 @@ public class EnemyPatrol : NetworkBehaviour
         {
             // Nếu tìm thấy người chơi, đuổi theo
             isChasing = true;
+            targetPlayer = closestPlayer;
             agent.SetDestination(closestPlayer.position);
         }
         else
         {
+            targetPlayer = null;
             // Nếu không có người chơi nào trong tầm nhìn
             if (isChasing)
             {

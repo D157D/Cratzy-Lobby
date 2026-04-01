@@ -67,7 +67,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 8171b8bb05cc46440bb816d5eeef3287, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Mask01:
@@ -168,7 +168,7 @@ Material:
     - __dirty: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 0.89411765}
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 0.89411765}
     - _Color01: {r: 0.7205882, g: 0.08477508, b: 0.08477508, a: 0}
     - _Color02: {r: 0.02649222, g: 0.3602941, b: 0.09785674, a: 0}
     - _Color03: {r: 0.07628676, g: 0.2567445, b: 0.6102941, a: 0}

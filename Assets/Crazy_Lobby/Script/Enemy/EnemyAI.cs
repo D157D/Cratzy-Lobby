@@ -19,13 +19,13 @@ public class EnemyPatrol : NetworkBehaviour
 
     public PatrolMode currentMode = PatrolMode.Random;
 
-    public float patrolRadius = 20f; // Bán kính giới hạn cho mỗi lần chọn điểm đi ngẫu nhiên
+    public float patrolRadius = 20f; 
     
-    public float patrolTimeout = 10f; // Thời gian tối đa để đến một điểm tuần tra
+    public float patrolTimeout = 10f; 
 
     public float visionRange = 10f;
 
-    public float moveSpeed = 3f;   // Dùng chung một tốc độ cho mọi trường hợp
+    public float moveSpeed = 3f;   
     public float acceleration = 100f;
     public float braking = 100f;
 
@@ -45,13 +45,13 @@ public class EnemyPatrol : NetworkBehaviour
         agent = GetComponent<NavMeshAgent>();
         _ncc = GetComponent<NetworkCharacterController>();
         _characterAnimation = new CharacterAnimation(GetComponentInChildren<Animator>());
-        agent.updateRotation = false; // Tắt tự động xoay để tự điều khiển bằng code
-        agent.updatePosition = false; // Tắt tự động di chuyển để NetworkCharacterController quản lý
+        agent.updateRotation = false; 
+        agent.updatePosition = false; 
 
         _ncc.maxSpeed = moveSpeed;
         _ncc.acceleration = acceleration;
         _ncc.braking = braking;
-        _ncc.rotationSpeed = 15f; // Chỉnh tốc độ xoay mặt tự động
+        _ncc.rotationSpeed = 15f; 
 
         if (currentMode == PatrolMode.FixedPoints)
         {
@@ -70,7 +70,6 @@ public class EnemyPatrol : NetworkBehaviour
     {
         if (!HasStateAuthority) return;
 
-        // Cập nhật vị trí NavMeshAgent theo vị trí thực tế của NetworkCharacterController
         agent.nextPosition = transform.position;
 
         FindAndChaseClosestPlayer();
@@ -96,7 +95,6 @@ public class EnemyPatrol : NetworkBehaviour
         {
             currentPatrolTimer += Runner.DeltaTime;
 
-            // Kiểm tra xem đã đến đích hoặc đường đi bị chặn hoàn toàn không thể tới được
             bool isUnreachable = agent.pathStatus == NavMeshPathStatus.PathPartial || agent.pathStatus == NavMeshPathStatus.PathInvalid;
             bool isTimeout = currentPatrolTimer >= patrolTimeout;
 
@@ -110,7 +108,6 @@ public class EnemyPatrol : NetworkBehaviour
                 {
                     if (isUnreachable || isTimeout)
                     {
-                        // Thay thế điểm bị lỗi/quá thời gian bằng một điểm mới
                         if (TryGetValidPatrolPoint(out Vector3 newPoint))
                         {
                             fixedPoints[currentPointIndex] = newPoint;
@@ -119,12 +116,11 @@ public class EnemyPatrol : NetworkBehaviour
                     
                     currentPointIndex = (currentPointIndex + 1) % fixedPoints.Length;
                     agent.SetDestination(fixedPoints[currentPointIndex]);
-                    currentPatrolTimer = 0f; // Reset timer
+                    currentPatrolTimer = 0f; 
                 }
             }
         }
 
-        // Uỷ quyền việc di chuyển và xoay người cho NetworkCharacterController
         _ncc.Move(moveDirection);
     }
 
@@ -134,25 +130,23 @@ public class EnemyPatrol : NetworkBehaviour
 
         float distance = Vector3.Distance(transform.position, targetTransform.position);
         
-        if (distance <= attackRange && attackTimer.ExpiredOrNotRunning(Runner))
+        if (distance <= attackRange)
         {
             Vector3 origin = transform.position + Vector3.up;
             Vector3 targetPos = targetTransform.position + Vector3.up;
             Vector3 direction = (targetPos - origin).normalized;
 
-            // Kiểm tra raycast theo yêu cầu: kiểm tra player bằng raycast
             if (Physics.Raycast(origin, direction, out RaycastHit hit, attackRange))
             {
-                // Kiểm tra xem tia raycast có trúng player không
                 var hitPlayer = hit.transform.GetComponentInParent<NetworkCharacterController>();
                 if (hitPlayer != null && hitPlayer.transform == targetTransform)
                 {
-                    // Tấn công: Spawn Firework giống như Player
                     if (ItemManager.Instance != null && ItemManager.Instance.fireworkProjectilePrefab.IsValid)
                     {
+                        Quaternion randomRot = Quaternion.Euler(Random.Range(-60f, 60f), Random.Range(0f, 360f), Random.Range(-60f, 60f));
                         Runner.Spawn(ItemManager.Instance.fireworkProjectilePrefab,
                             origin, 
-                            Quaternion.identity,
+                            randomRot,
                             Object.StateAuthority,
                             (runner, obj) =>
                             {
@@ -173,8 +167,6 @@ public class EnemyPatrol : NetworkBehaviour
 
     private void FindAndChaseClosestPlayer()
     {
-        // Sử dụng OverlapSphere để tìm các đối tượng trong tầm nhìn
-        // Đây là cách hiệu quả hơn so với việc dùng FindGameObjectsWithTag mỗi frame
         Collider[] playersInRadius = Physics.OverlapSphere(transform.position, visionRange);
 
         float closestDistanceSqr = Mathf.Infinity;
@@ -182,7 +174,6 @@ public class EnemyPatrol : NetworkBehaviour
 
         foreach (var col in playersInRadius)
         {
-            // Kiểm tra xem đối tượng có phải là người chơi không bằng cách kiểm tra Tag
             if (col.CompareTag("Player"))
             {
                 float distanceSqr = (transform.position - col.transform.position).sqrMagnitude;
@@ -196,7 +187,6 @@ public class EnemyPatrol : NetworkBehaviour
 
         if (closestPlayer != null)
         {
-            // Nếu tìm thấy người chơi, đuổi theo
             isChasing = true;
             targetPlayer = closestPlayer;
             agent.SetDestination(closestPlayer.position);
@@ -204,12 +194,10 @@ public class EnemyPatrol : NetworkBehaviour
         else
         {
             targetPlayer = null;
-            // Nếu không có người chơi nào trong tầm nhìn
             if (isChasing)
             {
-                // Nếu trước đó đang đuổi theo, thì bây giờ quay lại tuần tra
                 isChasing = false;
-                currentPatrolTimer = 0f; // Reset timer tuần tra
+                currentPatrolTimer = 0f; 
                 if (currentMode == PatrolMode.Random)
                 {
                     SetRandomDestination();
@@ -250,22 +238,20 @@ public class EnemyPatrol : NetworkBehaviour
         if (TryGetValidPatrolPoint(out Vector3 point))
         {
             agent.SetDestination(point);
-            currentPatrolTimer = 0f; // Reset timer sau khi tìm được điểm đến hợp lệ
+            currentPatrolTimer = 0f; 
         }
     }
 
     bool TryGetValidPatrolPoint(out Vector3 result)
     {
-        for (int i = 0; i < 15; i++) // Thử sinh ngẫu nhiên tối đa 15 lần để tìm được điểm tốt nhất
+        for (int i = 0; i < 15; i++) 
         {
             Vector2 randomPlane = Random.insideUnitCircle * patrolRadius;
             Vector3 randomPoint = transform.position + new Vector3(randomPlane.x, 0, randomPlane.y);
 
             NavMeshHit hit;
-            // Quét trong bán kính nhỏ (2f) để tránh bị bắt dính vào bề mặt sau bức tường
             if (NavMesh.SamplePosition(randomPoint, out hit, 2f, NavMesh.AllAreas))
             {
-                // Tính toán đường đi để đảm bảo không bị kẹt hay cách nhau bởi vật cản không thể vượt qua
                 NavMeshPath path = new NavMeshPath();
                 if (NavMesh.CalculatePath(transform.position, hit.position, NavMesh.AllAreas, path))
                 {
@@ -284,11 +270,9 @@ public class EnemyPatrol : NetworkBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        // Vẽ tầm nhìn (Màu Đỏ)
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, visionRange);
 
-        // Vẽ bán kính di chuyển ngẫu nhiên (Màu Xanh Dương)
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(transform.position, patrolRadius);
 

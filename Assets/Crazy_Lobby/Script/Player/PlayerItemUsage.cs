@@ -27,9 +27,10 @@ namespace Crazy_Lobby.Player.Components
 
             if (ItemManager.Instance != null && ItemManager.Instance.fireworkProjectilePrefab.IsValid)
             {
+                Quaternion randomRot = Quaternion.Euler(UnityEngine.Random.Range(-30f, 30f), UnityEngine.Random.Range(0f, 360f), UnityEngine.Random.Range(-30f, 30f));
                 _player.Runner.Spawn(ItemManager.Instance.fireworkProjectilePrefab,
                     _player.transform.position + Vector3.up, 
-                    Quaternion.identity,
+                    randomRot,
                     _player.Object.StateAuthority,
                     (runner, obj) =>
                     {

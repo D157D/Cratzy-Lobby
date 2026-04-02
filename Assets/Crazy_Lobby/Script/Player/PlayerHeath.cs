@@ -30,7 +30,7 @@ public class PlayerHealth : NetworkBehaviour
 
         if (HasStateAuthority)
         {
-            var hp = new PlayerHealthStruct { maxHealth = 5, currentHealth = 5 };
+            var hp = new PlayerHealthStruct { maxHealth = 5000, currentHealth = 5000 };
             playerHealthStruct = hp;
         }
 

@@ -6,9 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Quoc/scene/Map2.unity
-    guid: ef356eb221405414389b59c7b1c03127
-  - enabled: 1
     path: Assets/Scenes/Login_Crazy.unity
     guid: 5a04d50e9237d304db5e9bf37d17b382
   - enabled: 1

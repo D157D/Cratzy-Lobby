@@ -256,6 +256,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+<<<<<<< HEAD
 --- !u!1 &825496171
 GameObject:
   m_ObjectHideFlags: 0
@@ -366,6 +367,8 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+=======
+>>>>>>> Huy_Player2
 --- !u!1 &1202570634
 GameObject:
   m_ObjectHideFlags: 0
@@ -915,4 +918,7 @@ SceneRoots:
   - {fileID: 1642191883}
   - {fileID: 1633088937}
   - {fileID: 346435676}
+<<<<<<< HEAD
   - {fileID: 825496175}
+=======
+>>>>>>> Huy_Player2

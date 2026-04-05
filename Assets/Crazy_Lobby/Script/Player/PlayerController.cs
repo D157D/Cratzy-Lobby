@@ -1,0 +1,180 @@
+using System;
+using System.Collections.Generic;
+using Crazy_Lobby.Player;
+using Fusion;
+using Fusion.Sockets;
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+public struct NetworkInputData : INetworkInput
+{
+    public Vector2 Movement;
+    public float CameraYaw;
+    public NetworkBool Jump;
+}
+[RequireComponent(typeof(NetworkCharacterController))]
+[RequireComponent(typeof(NetworkObject))]
+public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
+{
+    private float jumpForce = 10f;
+    public float maxSpeed = 10f; 
+    public float acceleration = 100f; 
+    public float braking = 100f; 
+    private NetworkCharacterController _ncc;
+    private CharacterAnimation _characterAnimation;
+    private Vector2 _localMoveInput; 
+    private bool _jumpPressed;
+
+    private void Awake()
+    {
+        _ncc = GetComponent<NetworkCharacterController>();
+        _characterAnimation = new CharacterAnimation(GetComponentInChildren<Animator>());
+        _ncc.maxSpeed = maxSpeed;
+        _ncc.acceleration = acceleration;
+        _ncc.braking = braking;
+    }
+  
+    public override void Spawned()
+    {
+        if (HasInputAuthority)
+        {
+            Runner.AddCallbacks(this);
+        }
+    }
+
+    public override void Despawned(NetworkRunner runner, bool hasState)
+    {
+        if (HasInputAuthority)
+        {
+            Runner.RemoveCallbacks(this);
+        }
+    }
+
+    public void OnMove(InputValue value)
+    {
+        _localMoveInput = value.Get<Vector2>();
+    }
+
+    public void OnJump(InputValue value)
+    {
+        if (value.isPressed) _jumpPressed = true;
+    }
+
+    public override void FixedUpdateNetwork()
+    {
+        if (GetInput(out NetworkInputData data))
+        {
+            Quaternion cameraRotation = Quaternion.Euler(0, data.CameraYaw, 0);
+            
+            Vector3 moveDirection = cameraRotation * new Vector3(data.Movement.x, 0, data.Movement.y);
+
+            _ncc.Move(moveDirection);
+
+            if (data.Jump && _ncc.Grounded)
+            {
+                _ncc.Jump( true, jumpForce );
+                _characterAnimation.TriggerJump();
+            }
+            
+            if (moveDirection.sqrMagnitude > 0.01f)
+            {
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(moveDirection), Runner.DeltaTime * 10f);
+            }
+        }
+    }
+
+    public override void Render()
+    {
+        _characterAnimation.UpdateMoveAnimation(_ncc.Velocity, maxSpeed);
+        _characterAnimation.UpdateJumpState(_ncc.Grounded, _ncc.Velocity.y, Time.deltaTime);
+    }
+
+    public void OnInput(NetworkRunner runner, NetworkInput input)
+    {
+        var data = new NetworkInputData();
+        data.Movement = _localMoveInput;
+
+        if (UnityEngine.Camera.main != null)
+        {
+            data.CameraYaw = UnityEngine.Camera.main.transform.eulerAngles.y;
+        }
+
+        data.Jump = _jumpPressed;
+
+        input.Set(data); 
+        _jumpPressed = false;
+    }
+
+    public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
+    {
+    }
+
+    public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
+    {
+    }
+
+    public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
+    {
+    }
+
+    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
+    {
+    }
+
+    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
+    {
+        PlayerPrefs.Save();
+    }
+
+    public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
+    {
+    }
+
+    public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token)
+    {
+    }
+
+    public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason)
+    {
+    }
+
+    public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message)
+    {
+    }
+
+    public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data)
+    {
+    }
+
+    public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress)
+    {
+    }
+
+    public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input)
+    {
+    }
+
+    public void OnConnectedToServer(NetworkRunner runner)
+    {
+    }
+
+    public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
+    {
+    }
+
+    public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data)
+    {
+    }
+
+    public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken)
+    {
+    }
+
+    public void OnSceneLoadDone(NetworkRunner runner)
+    {
+    }
+
+    public void OnSceneLoadStart(NetworkRunner runner)
+    {
+    }
+}

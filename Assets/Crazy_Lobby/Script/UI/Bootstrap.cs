@@ -6,6 +6,9 @@ public class Bootstrap : MonoBehaviour
     private BootstrapUIManager _uiManager;
     private NetworkRunner _runner;
 
+    private bool _isConnecting = false;
+    private float _connectionStartTime = 0f;
+
     private void Awake()
     {
         DontDestroyOnLoad(this.gameObject);
@@ -21,31 +24,63 @@ public class Bootstrap : MonoBehaviour
         }
     }
 
-    public async void StartRoom(GameMode mode)
+    private void Update()
     {
-        if (_runner == null)
+        if (_isConnecting && _uiManager != null)
         {
-            _runner = gameObject.AddComponent<NetworkRunner>();
-            _runner.ProvideInput = true;
+            float timeElapsed = Time.time - _connectionStartTime;
+            _uiManager.UpdateLoadingTime(timeElapsed);
+        }
+    }
+
+    public async void StartRoom(GameMode mode, string sessionName)
+    {
+        if (_runner != null)
+        {
+            _runner.Shutdown();
+            _runner = null;
         }
 
-        var sceneManager = gameObject.GetComponent<NetworkSceneManagerDefault>();
-        if (sceneManager == null) sceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>();
+        GameObject runnerGO = new GameObject("FusionNetworkRunner");
+        DontDestroyOnLoad(runnerGO);
+
+        _runner = runnerGO.AddComponent<NetworkRunner>();
+        _runner.ProvideInput = true;
+
+        var sceneManager = runnerGO.AddComponent<NetworkSceneManagerDefault>();
 
         var args = new StartGameArgs()
         {
             GameMode = mode,
-            SessionName = "Room_1234",
+            SessionName = sessionName, 
             SceneManager = sceneManager,
             Scene = SceneRef.FromIndex(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex)
         };
 
+        _isConnecting = true;
+        _connectionStartTime = Time.time;
+        
+        if (_uiManager != null) 
+        {
+            _uiManager.ShowLoadingPanel(true); 
+        }
+
         var result = await _runner.StartGame(args);
+
+        _isConnecting = false;
+        
+        if (_uiManager != null) 
+        {
+            _uiManager.ShowLoadingPanel(false);
+        }
 
         if (result.Ok)
         {
-            Debug.Log($"<color=green>Vào phòng thành công! Mode: {mode}</color>");
-            if (_uiManager != null) _uiManager.ShowLobby(_runner.IsServer);
+            string currentRoomId = _runner.SessionInfo.Name;
+
+            Debug.Log($"<color=green>Vào phòng thành công! Mode: {mode} - RoomID: {currentRoomId}. Thời gian kết nối: {Time.time - _connectionStartTime:F1}s</color>");
+            
+            if (_uiManager != null) _uiManager.ShowLobby(_runner.IsServer, currentRoomId);
         }
         else
         {
@@ -68,7 +103,7 @@ public class Bootstrap : MonoBehaviour
             }
             else
             {
-                Debug.LogError($"[BootstrapUI] Không tìm thấy Scene '{gameSceneName}'. Vui lòng thêm vào Build Settings!");
+                Debug.LogError($"[Bootstrap] Không tìm thấy Scene '{gameSceneName}'. Vui lòng thêm vào Build Settings!");
             }
         }
     }

@@ -32,15 +32,29 @@ public class MatchResultReq
 }
 
 [Serializable]
-public class UserProfileResponse { public string username; }
+public class UpdateNameRequest { public string displayName; }
 
+[Serializable]
+public class UserProfileResponse 
+{ 
+    public string username; 
+    public string displayName; 
+}
 
 public class BackendManager : MonoBehaviour
 {
     public static BackendManager Instance;
     private string baseUrl = "http://127.0.0.1:5113/api";
     private string currentToken = "";
+    private string currentUsername = ""; 
     private Coroutine sessionCheckCoroutine;
+
+    public string CurrentDisplayName { get; private set; } = "";
+
+    public static event Action OnLoginSuccess;
+
+    public bool IsLoggedIn => !string.IsNullOrEmpty(currentToken);
+    public bool IsOfflineMode => currentToken == "offline_token_aaa";
 
     private void Awake()
     {
@@ -62,12 +76,15 @@ public class BackendManager : MonoBehaviour
         StartCoroutine(GetUserProfileRequest(callback));
     }
 
+    public void UpdateDisplayName(string newName, Action<bool, string> callback = null)
+    {
+        StartCoroutine(UpdateDisplayNameRequestRoutine(newName, callback));
+    }
+
     IEnumerator RegisterRequest(string username, string password, Action<bool, string> callback)
     {
         string url = baseUrl + "/Auth/register";
         
-        Debug.Log("Đang gửi Register Request tới: " + url);
-
         SignUpRequest reqData = new SignUpRequest { username = username, password = password };
         string jsonBody = JsonUtility.ToJson(reqData);
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonBody);
@@ -84,24 +101,19 @@ public class BackendManager : MonoBehaviour
 
             if (req.result == UnityWebRequest.Result.Success)
             {
-                Debug.Log("<color=green>ĐĂNG KÝ THÀNH CÔNG!</color>");
                 callback?.Invoke(true, "Đăng ký thành công!");
             }
             else
             {
-                Debug.Log("<color=red>ĐĂNG KÝ THẤT BẠI: " + req.error + "</color>");
                 callback?.Invoke(false, "Đăng ký thất bại: " + req.error);
             }
         }
     }
 
-
-
     IEnumerator LoginRequest(string username, string password, Action<bool, string> callback)
     {
         string url = baseUrl + "/Auth/login";
-        Debug.Log("Đang gửi Login Request tới: " + url);
-
+        
         LoginRequest reqData = new LoginRequest { username = username, password = password };
         string jsonBody = JsonUtility.ToJson(reqData);
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonBody);
@@ -118,37 +130,30 @@ public class BackendManager : MonoBehaviour
 
             if (req.result == UnityWebRequest.Result.Success)
             {
-                Debug.Log("<color=green>ĐĂNG NHẬP THÀNH CÔNG!</color>");
                 string jsonResponse = req.downloadHandler.text;
-                Debug.Log("<color=cyan>Dữ liệu JSON từ Server: " + jsonResponse + "</color>");
-
                 LoginResponse loginResponse = JsonUtility.FromJson<LoginResponse>(jsonResponse);
                 currentToken = loginResponse.token;
+                currentUsername = username;
                 
-                Debug.Log("<color=yellow>Token nhận được: " + currentToken + "</color>");
-                Debug.Log("<color=yellow>Player ID: " + loginResponse.playerId + "</color>");
-                
+                Debug.Log($"[BackendManager] Login thành công. Token: {currentToken.Substring(0, Mathf.Min(20, currentToken.Length))}...");
                 callback?.Invoke(true, "Đăng nhập thành công!");
+                OnLoginSuccess?.Invoke();
             }
             else
             {
-                // Fallback: Cho phép đăng nhập offline nếu web API lỗi và người dùng nhập aaa/aaa
+                Debug.LogWarning($"[BackendManager] Login API thất bại: HTTP {req.responseCode} - {req.error}");
+
                 if (username == "aaa" && password == "aaa")
                 {
-                    Debug.Log("<color=green>ĐĂNG NHẬP THÀNH CÔNG (Chế độ Offline/Dự phòng)!</color>");
                     currentToken = "offline_token_aaa";
+                    currentUsername = username;
+                    CurrentDisplayName = username; 
+                    Debug.Log("[BackendManager] Chuyển sang chế độ Offline.");
                     callback?.Invoke(true, "Đăng nhập thành công (Offline)!");
+                    OnLoginSuccess?.Invoke();
                 }
                 else
                 {
-                    Debug.LogError("<color=red>ĐĂNG NHẬP THẤT BẠI: " + req.error + "</color>");
-                    Debug.LogError("Mã lỗi (Response Code): " + req.responseCode);
-
-                    if (req.downloadHandler != null && !string.IsNullOrEmpty(req.downloadHandler.text))
-                    {
-                        Debug.LogError("Chi tiết lỗi từ Server: " + req.downloadHandler.text);
-                    }
-                    
                     callback?.Invoke(false, "Đăng nhập thất bại: " + req.error);
                 }
             }
@@ -157,17 +162,28 @@ public class BackendManager : MonoBehaviour
 
     IEnumerator GetUserProfileRequest(Action<bool, string> callback)
     {
-        // Lưu ý: Đổi "/User/profile" thành đúng đường dẫn API đang mở trên Server của bạn
+        if (IsOfflineMode)
+        {
+            Debug.Log($"[BackendManager] Offline mode → trả về tên: {CurrentDisplayName}");
+            string offlineName = !string.IsNullOrEmpty(CurrentDisplayName) ? CurrentDisplayName : currentUsername;
+            CurrentDisplayName = offlineName;
+            callback?.Invoke(true, offlineName);
+            yield break;
+        }
+
+        if (string.IsNullOrEmpty(currentToken))
+        {
+            Debug.LogWarning("[BackendManager] GetUserProfile thất bại: Chưa đăng nhập (token rỗng).");
+            callback?.Invoke(false, "Chưa đăng nhập.");
+            yield break;
+        }
+
         string url = baseUrl + "/User/profile"; 
-        Debug.Log("Đang gửi Get Profile Request tới: " + url);
+        Debug.Log($"[BackendManager] Gọi API: GET {url}");
 
         using (UnityWebRequest req = UnityWebRequest.Get(url))
         {
-            // Gửi kèm Token để xác thực người dùng
-            if (!string.IsNullOrEmpty(currentToken))
-            {
-                req.SetRequestHeader("Authorization", "Bearer " + currentToken);
-            }
+            req.SetRequestHeader("Authorization", "Bearer " + currentToken);
             req.certificateHandler = new BypassCertificate();
 
             yield return req.SendWebRequest();
@@ -175,17 +191,57 @@ public class BackendManager : MonoBehaviour
             if (req.result == UnityWebRequest.Result.Success)
             {
                 string jsonResponse = req.downloadHandler.text;
+                Debug.Log($"[BackendManager] Profile response: {jsonResponse}");
+
                 UserProfileResponse res = JsonUtility.FromJson<UserProfileResponse>(jsonResponse);
-                callback?.Invoke(true, res.username);
+                
+                CurrentDisplayName = string.IsNullOrEmpty(res.displayName) ? res.username : res.displayName;
+                
+                callback?.Invoke(true, CurrentDisplayName);
             }
             else
             {
-                Debug.LogError("<color=red>LỖI LẤY TÊN: " + req.error + "</color>");
-                callback?.Invoke(false, "Lỗi tải tên: " + req.error);
+                Debug.LogError($"[BackendManager] GetProfile thất bại: HTTP {req.responseCode} - {req.error}\nResponse: {req.downloadHandler?.text}");
+                callback?.Invoke(false, $"Lỗi tải tên (HTTP {req.responseCode}): {req.error}");
             }
         }
     }
 
+    IEnumerator UpdateDisplayNameRequestRoutine(string newName, Action<bool, string> callback)
+    {
+        string url = baseUrl + "/User/display-name"; 
+        
+        UpdateNameRequest reqData = new UpdateNameRequest { displayName = newName };
+        string jsonBody = JsonUtility.ToJson(reqData);
+        byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonBody);
+
+        using (UnityWebRequest req = new UnityWebRequest(url, "PUT"))
+        {
+            UploadHandlerRaw uploadHandler = new UploadHandlerRaw(bodyRaw);
+            uploadHandler.contentType = "application/json";
+            req.uploadHandler = uploadHandler;
+            req.downloadHandler = new DownloadHandlerBuffer();
+            req.certificateHandler = new BypassCertificate();
+
+            if (!string.IsNullOrEmpty(currentToken))
+            {
+                req.SetRequestHeader("Authorization", "Bearer " + currentToken);
+            }
+
+            yield return req.SendWebRequest();
+
+            if (req.result == UnityWebRequest.Result.Success)
+            {
+                CurrentDisplayName = newName;
+                callback?.Invoke(true, "Đổi tên thành công!");
+            }
+            else
+            {
+                Debug.LogError($"Lỗi đổi tên: {req.downloadHandler.text}");
+                callback?.Invoke(false, "Đổi tên thất bại: " + req.error);
+            }
+        }
+    }
 
     public class BypassCertificate : CertificateHandler
     {
@@ -194,6 +250,7 @@ public class BackendManager : MonoBehaviour
             return true;
         }
     }
+
     public static class JsonHelper
     {
         public static T[] FromJson<T>(string json)

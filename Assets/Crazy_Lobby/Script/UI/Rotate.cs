@@ -12,7 +12,7 @@ public class Rotate : MonoBehaviour
     {
         while (true)
         {
-            transform.Rotate(0, 0, 1);
+            transform.Rotate(0, 0, -1);
             yield return null;
         }
     }

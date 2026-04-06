@@ -7,6 +7,7 @@ namespace Crazy_Lobby.Item
     {
         public static ItemManager Instance { get; private set; }
         public NetworkPrefabRef fireworkProjectilePrefab;
+        public NetworkPrefabRef Magic;
 
         private void Awake()
         {

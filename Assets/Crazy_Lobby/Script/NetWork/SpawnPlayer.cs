@@ -26,13 +26,11 @@ public class SpawnPlayer : NetworkBehaviour, IPlayerJoined
             }
         }
     }
-    
 
     public void PlayerJoined(PlayerRef player)
     {
         if (!Runner.IsServer) return;
-        
-        
+
         if (Runner.GetPlayerObject(player) == null)
         {
             SpawnPlayerCharacter(player);

@@ -1,31 +1,44 @@
 using UnityEngine;
-using UnityEngine.UI;
 using Fusion;
 using System.Collections.Generic;
 
 [System.Serializable]
-public struct CharacterEntry {
-	public CharacterType Type;
-    public NetworkPrefabRef PlayerPrefab;
+public struct CharacterEntry
+{
+    public CharacterType Type;
+    public GameObject ModelPrefab;
+    public Sprite Icon;
+    public string DisplayName;
 }
 
-public class CharacterDatabase  : MonoBehaviour
+public class CharacterDatabase : MonoBehaviour
 {
-	public CharacterEntry[] character;
-    private Dictionary<CharacterType, NetworkPrefabRef> _map;
+    public CharacterEntry[] character;
+    private Dictionary<CharacterType, CharacterEntry> _map;
 
     private void Awake()
     {
-        _map = new Dictionary<CharacterType, NetworkPrefabRef>();
+        _map = new Dictionary<CharacterType, CharacterEntry>();
 
-        foreach(var c in character)
+        foreach (var c in character)
         {
-            _map[c.Type] = c.PlayerPrefab;
+            _map[c.Type] = c;
         }
     }
 
-    public NetworkPrefabRef GetPrefab(CharacterType type)
+    public CharacterEntry GetEntry(CharacterType type)
     {
-        return _map[type];
+        if (_map != null && _map.TryGetValue(type, out var entry))
+            return entry;
+
+        Debug.LogWarning($"[CharacterDatabase] Không tìm thấy entry cho {type}");
+        return default;
     }
+
+    public CharacterEntry[] GetAllEntries()
+    {
+        return character;
+    }
+
+    public int Count => character != null ? character.Length : 0;
 }

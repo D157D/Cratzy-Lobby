@@ -159,6 +159,15 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
     {
         if (IsDead) return;
 
+        if (_characterAnimation != null && _characterAnimation.GetAnimator() == null)
+        {
+            var animator = GetComponentInChildren<Animator>();
+            if (animator != null)
+            {
+                _characterAnimation.SetAnimator(animator);
+            }
+        }
+
         _playerMovement.UpdateAnimations();
     }
     public void OnInput(NetworkRunner runner, NetworkInput input)
@@ -201,12 +210,20 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 
     private void HandleDeath()
     {
-        if (IsDead) return; // Already dead, do nothing.
+        if (IsDead) return;
 
         IsDead = true;
-        _ncc.enabled = false; // Disable character controller to stop movement
+        _ncc.enabled = false;   
 
-        // TODO: Play death animation via _characterAnimation
+        if (_characterAnimation != null)
+        {
+            if (_characterAnimation.GetAnimator() == null)
+            {
+                _characterAnimation.SetAnimator(GetComponentInChildren<Animator>());
+            }
+            _characterAnimation.TriggerDeath();
+        }
+
         Debug.Log($"Player {Object.Id} handling death on client.");
 
         if (HasInputAuthority)

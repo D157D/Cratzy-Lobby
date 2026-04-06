@@ -4,11 +4,16 @@ namespace Crazy_Lobby.Player
 {
     public class CharacterAnimation
     {
-        private readonly Animator _animator;
+        private Animator _animator;
         public CharacterAnimation(Animator animator)
         {
             _animator = animator;
         }
+        public void SetAnimator(Animator animator)
+        {
+            _animator = animator;
+        }
+        public Animator GetAnimator() => _animator;
         public void UpdateMoveAnimation(Vector3 velocity, float maxSpeed = 1f)
         {
             if (_animator == null) return;
@@ -45,6 +50,12 @@ namespace Crazy_Lobby.Player
         {
             if(_animator == null) return;
             _animator.SetTrigger("doubleJump");
+        }
+
+        public void TriggerDeath()
+        {
+            if (_animator == null) return;
+            _animator.SetTrigger("die");
         }
     }
 }

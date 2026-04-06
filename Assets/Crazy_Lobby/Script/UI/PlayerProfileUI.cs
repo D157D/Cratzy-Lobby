@@ -11,7 +11,7 @@ public class PlayerProfileUI : MonoBehaviour
     public TMP_InputField changeNameInput;  
     public Button btnChangeName;            
     public TextMeshProUGUI statusText;      
-
+    public GameObject LoadingPanel;
     private void Start()
     {
         if (btnChangeName != null)
@@ -100,8 +100,11 @@ public class PlayerProfileUI : MonoBehaviour
 
         BackendManager.Instance.UpdateDisplayName(newName, (isSuccess, message) =>
         {
+            if(!isSuccess) LoadingPanel.SetActive(true);
+            else LoadingPanel.SetActive(false);
+            
             if (btnChangeName != null) btnChangeName.interactable = true;
-
+            
             if (isSuccess)
             {
                 SetStatus(message, Color.green);

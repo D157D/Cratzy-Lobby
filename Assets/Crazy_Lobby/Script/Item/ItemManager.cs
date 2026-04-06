@@ -10,7 +10,6 @@ namespace Crazy_Lobby.Item
 
         private void Awake()
         {
-            // Thiết lập Singleton
             if (Instance == null)
             {
                 Instance = this;

@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class Bootstrap : MonoBehaviour 
 {
+    public static Bootstrap Instance;
     private BootstrapUIManager _uiManager;
     private NetworkRunner _runner;
 
@@ -11,6 +12,9 @@ public class Bootstrap : MonoBehaviour
 
     private void Awake()
     {
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+        
         DontDestroyOnLoad(this.gameObject);
     }
 
@@ -37,7 +41,7 @@ public class Bootstrap : MonoBehaviour
     {
         if (_runner != null)
         {
-            _runner.Shutdown();
+            await _runner.Shutdown();
             _runner = null;
         }
 
@@ -77,6 +81,7 @@ public class Bootstrap : MonoBehaviour
         if (result.Ok)
         {
             string currentRoomId = _runner.SessionInfo.Name;
+            BackendManager.Instance.CurrentRoomId = currentRoomId;
 
             Debug.Log($"<color=green>Vào phòng thành công! Mode: {mode} - RoomID: {currentRoomId}. Thời gian kết nối: {Time.time - _connectionStartTime:F1}s</color>");
             

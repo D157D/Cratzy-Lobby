@@ -113,12 +113,12 @@ TextureImporter:
       name: bar_0
       rect:
         serializedVersion: 2
-        x: 18
+        x: 32
         y: 93
-        width: 332
+        width: 318
         height: 368
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []

@@ -152,6 +152,8 @@ MonoBehaviour:
   moveSpeed: 3
   acceleration: 100
   braking: 100
+  attackRange: 10
+  attackCooldown: 3
 --- !u!114 &-3361772075137135526
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -226,6 +228,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 3dcb7923871a02e4288f8c602d3ab3f3, type: 3}
       propertyPath: m_Name
       value: Mage
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 3dcb7923871a02e4288f8c602d3ab3f3, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 3dcb7923871a02e4288f8c602d3ab3f3, type: 3}
       propertyPath: m_TagString

@@ -14,7 +14,9 @@ public struct NetworkInputData : INetworkInput
     public float CameraYaw;
     public NetworkBool Jump;
     public NetworkBool UseItem;
+    public NetworkBool Magic;
 }
+
 [RequireComponent(typeof(NetworkCharacterController))]
 [RequireComponent(typeof(NetworkObject))]
 public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
@@ -30,6 +32,7 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 
     [Header("Item Settings")]
     private float itemCooldown = 3f;
+    private float magicCooldown = 1f;
 
     private NetworkCharacterController _ncc;
     private CharacterAnimation _characterAnimation;
@@ -41,8 +44,10 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
     private Vector2 _localMoveInput; 
     private bool _jumpPressed;
     private bool _useItemPressed;
+    private bool _magicPressed;
 
     [Networked] private TickTimer ItemCooldownTimer { get; set; }
+    [Networked] private TickTimer MagicCooldownTimer { get; set; }
     
     public NetworkId CurrentTargetId { get; internal set; }
     public bool IsDead { get; internal set; }
@@ -131,6 +136,11 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
         if (value.isPressed) _useItemPressed = true;
     }
 
+    public void OnMagic(InputValue value)
+    {
+        if (value.isPressed) _magicPressed = true;
+    }
+
     public override void FixedUpdateNetwork()
     {
         if (IsDead) return;
@@ -149,6 +159,19 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
                             ItemCooldownTimer = TickTimer.CreateFromSeconds(Runner, itemCooldown);
                         }
                     }
+            }
+
+            if (data.Magic)
+            {
+                if (HasStateAuthority)
+                {
+                    if (MagicCooldownTimer.ExpiredOrNotRunning(Runner))
+                    {
+                        _playerItemUsage.UseMagic();
+                        MagicCooldownTimer = TickTimer.CreateFromSeconds(Runner, magicCooldown);
+                        _characterAnimation.TriggerAttack();
+                    }
+                }
             }
         }
 
@@ -190,10 +213,12 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 
         data.Jump = _jumpPressed;
         data.UseItem = _useItemPressed;
+        data.Magic = _magicPressed;
 
         input.Set(data); 
         _jumpPressed = false;
         _useItemPressed = false;
+        _magicPressed = false;
     }
 
   

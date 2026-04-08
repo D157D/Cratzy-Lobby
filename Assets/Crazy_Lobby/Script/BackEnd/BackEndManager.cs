@@ -44,7 +44,8 @@ public class UserProfileResponse
 public class BackendManager : MonoBehaviour
 {
     public static BackendManager Instance;
-    private string baseUrl = "http://127.0.0.1:5113/api";
+    // private string baseUrl = "http://127.0.0.1:5113/api"; local
+    private string baseUrl = "https://webapiforgame-production.up.railway.app/api";
     private string currentToken = "";
     private string currentUsername = ""; 
     private Coroutine sessionCheckCoroutine;

@@ -57,5 +57,11 @@ namespace Crazy_Lobby.Player
             if (_animator == null) return;
             _animator.SetTrigger("die");
         }
+
+        public void TriggerAttack()
+        {
+            if (_animator == null) return;
+            _animator.SetTrigger("attack");
+        }
     }
 }

@@ -9677,7 +9677,7 @@ MonoBehaviour:
   fireworkProjectilePrefab:
     RawGuidValue: 02a25b05ea0f8be44a1144cda9ec4814
   Magic:
-    RawGuidValue: 00000000000000000000000000000000
+    RawGuidValue: 15f6bcbd26c77194ba5bdf90e0f1951c
 --- !u!4 &1753596098
 Transform:
   m_ObjectHideFlags: 0
@@ -12352,8 +12352,6 @@ GameObject:
   - component: {fileID: 2134813269}
   - component: {fileID: 2134813268}
   - component: {fileID: 2134813267}
-  - component: {fileID: 2134813273}
-  - component: {fileID: 2134813272}
   - component: {fileID: 2134813271}
   m_Layer: 5
   m_Name: Canvas
@@ -12463,36 +12461,8 @@ MonoBehaviour:
   Flags: 262145
   NestedObjects:
   - {fileID: 960133563}
-  NetworkedBehaviours:
-  - {fileID: 2134813273}
+  NetworkedBehaviours: []
   ForceRemoteRenderTimeframe: 0
---- !u!114 &2134813272
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2134813266}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 70dd9d1daddd17343a1f5269cd5bfa50, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  healthSlider: {fileID: 5067157875547811221}
---- !u!114 &2134813273
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2134813266}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea1e1d12fc8cf6a47b62d62011714c58, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _IsDead:
-    _value: 0
 --- !u!1001 &2136278842
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -31095,17 +31065,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 98fac82281568364086ac8a8059ffa9c, type: 3}
---- !u!114 &5067157875547811221 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4559637431173040095, guid: 98fac82281568364086ac8a8059ffa9c, type: 3}
-  m_PrefabInstance: {fileID: 5067157875547811220}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

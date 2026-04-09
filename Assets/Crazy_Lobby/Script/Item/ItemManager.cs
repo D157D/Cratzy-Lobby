@@ -19,6 +19,7 @@ namespace Crazy_Lobby.Item
             {
                 Destroy(gameObject);
             }
+            DontDestroyOnLoad(gameObject);
         }
     }
 }

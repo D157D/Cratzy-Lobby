@@ -3,10 +3,13 @@ using UnityEngine.AI;
 using Crazy_Lobby.Player;
 using Crazy_Lobby.Item;
 using Fusion;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(NetworkCharacterController))]
 public class EnemyPatrol : NetworkBehaviour
 {
+    public static readonly List<EnemyPatrol> ActiveEnemies = new List<EnemyPatrol>();
+
     public enum PatrolMode
     {
         Random,
@@ -42,6 +45,8 @@ public class EnemyPatrol : NetworkBehaviour
 
     public override void Spawned()
     {
+        ActiveEnemies.Add(this);
+
         agent = GetComponent<NavMeshAgent>();
         _ncc = GetComponent<NetworkCharacterController>();
         _characterAnimation = new CharacterAnimation(GetComponentInChildren<Animator>());
@@ -63,6 +68,11 @@ public class EnemyPatrol : NetworkBehaviour
         {
             SetRandomDestination();
         }
+    }
+
+    public override void Despawned(NetworkRunner runner, bool hasState)
+    {
+        ActiveEnemies.Remove(this);
     }
 
 

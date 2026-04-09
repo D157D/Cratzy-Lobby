@@ -18,7 +18,7 @@ namespace Crazy_Lobby.Player.Components
         {
             if (!_player.HasStateAuthority) return;
 
-            NetworkId targetId = FindClosestPlayerTarget();
+            NetworkId targetId = FindClosestTarget();
 
             if (!targetId.IsValid)
             {
@@ -77,11 +77,12 @@ namespace Crazy_Lobby.Player.Components
             }
         }
 
-        private NetworkId FindClosestPlayerTarget()
+        private NetworkId FindClosestTarget()
         {
             float closestDistSqr = float.MaxValue;
-            PlayerController closestPlayer = null;
+            NetworkObject closestObj = null;
 
+            // Kiểm tra list Players
             foreach (var p in PlayerController.ActivePlayers)
             {
                 if (p == null || p.Object == _player.Object || p.IsDead) continue;
@@ -90,11 +91,28 @@ namespace Crazy_Lobby.Player.Components
                 if (distSqr < closestDistSqr && distSqr < _targetingRange * _targetingRange)
                 {
                     closestDistSqr = distSqr;
-                    closestPlayer = p;
+                    closestObj = p.Object;
                 }
             }
 
-            return closestPlayer != null ? closestPlayer.Object.Id : default;
+            // Kiểm tra list Enemies
+            foreach (var e in EnemyPatrol.ActiveEnemies)
+            {
+                if (e == null || e.Object == null) continue;
+
+                // Kiểm tra xem enemy đã chết chưa (nếu có PlayerHealth)
+                var health = e.GetComponent<PlayerHealth>();
+                if (health != null && health.IsDead) continue;
+
+                float distSqr = (_player.transform.position - e.transform.position).sqrMagnitude;
+                if (distSqr < closestDistSqr && distSqr < _targetingRange * _targetingRange)
+                {
+                    closestDistSqr = distSqr;
+                    closestObj = e.Object;
+                }
+            }
+
+            return closestObj != null ? closestObj.Id : default;
         }
     }
 }

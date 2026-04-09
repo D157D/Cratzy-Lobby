@@ -24,13 +24,15 @@ public class PlayerHealth : NetworkBehaviour
 
     private ChangeDetector _changeDetector;
 
+    [SerializeField] private int _initialMaxHealth = 500;
+
     public override void Spawned()
     {
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
 
         if (HasStateAuthority)
         {
-            var hp = new PlayerHealthStruct { maxHealth = 500, currentHealth = 500 };
+            var hp = new PlayerHealthStruct { maxHealth = _initialMaxHealth, currentHealth = _initialMaxHealth };
             playerHealthStruct = hp;
         }
 

@@ -10,6 +10,7 @@ namespace Crazy_Lobby.Item
         public float speed = 25f; 
         public float lifeTime = 3f;
         public int damage = 1;
+        public float rotationSpeed = 360f; // Tốc độ xoay (độ/giây)
 
         [Networked] public NetworkId OwnerId { get; set; }
         [Networked] private TickTimer LifeTimer { get; set; }
@@ -51,6 +52,9 @@ namespace Crazy_Lobby.Item
 
             // Di chuyển thẳng về phía trước
             transform.position += transform.forward * speed * Runner.DeltaTime;
+            
+            // Xoay tự động quanh trục tiến
+            transform.Rotate(Vector3.forward, rotationSpeed * Runner.DeltaTime);
         }
 
         private void OnTriggerEnter(Collider other)

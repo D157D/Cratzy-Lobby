@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.siccity.gltfutility": "https://github.com/D157D/GLTFUtility-master.git",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.ai.navigation": "2.0.4",
     "com.unity.cinemachine": "3.1.5",

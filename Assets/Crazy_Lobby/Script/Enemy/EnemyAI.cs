@@ -166,6 +166,9 @@ public class EnemyPatrol : NetworkBehaviour
     {
         if (targetTransform == null) return;
 
+        // THÊM CHECK TIMER Ở ĐÂY
+        if (attackTimer.IsRunning) return;
+
         float distance = Vector3.Distance(transform.position, targetTransform.position);
         
         if (distance <= attackRange)
@@ -181,8 +184,13 @@ public class EnemyPatrol : NetworkBehaviour
                 {
                     if (ItemManager.Instance != null && ItemManager.Instance.fireworkProjectilePrefab.IsValid)
                     {
-                        Quaternion randomRot = Quaternion.Euler(Random.Range(-60f, 60f), Random.Range(0f, 360f), Random.Range(-60f, 60f));
-                        Runner.Spawn(ItemManager.Instance.fireworkProjectilePrefab,
+                        Quaternion randomRot = Quaternion.Euler(
+                            Random.Range(-60f, 60f),
+                            Random.Range(0f, 360f),
+                            Random.Range(-60f, 60f));
+
+                        Runner.Spawn(
+                            ItemManager.Instance.fireworkProjectilePrefab,
                             origin, 
                             randomRot,
                             Object.StateAuthority,
@@ -197,6 +205,7 @@ public class EnemyPatrol : NetworkBehaviour
                             });
                     }
 
+                    // SET TIMER SAU KHI BẮN
                     attackTimer = TickTimer.CreateFromSeconds(Runner, attackCooldown);
                 }
             }

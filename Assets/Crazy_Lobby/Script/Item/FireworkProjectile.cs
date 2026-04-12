@@ -19,6 +19,8 @@ namespace Crazy_Lobby.Item
         [Networked] private TickTimer ShootUpTimer { get; set; }
 
         [SerializeField] private GameObject explosionEffectPrefab; // Hiệu ứng phát nổ
+        [SerializeField] private GameObject smokeTrailPrefab; // Hiệu ứng khói ở đuôi
+        private GameObject _spawnedSmokeTrail; // Biến để giữ tham chiếu đến hiệu ứng khói đã tạo
 
         public override void Spawned()
         {
@@ -44,6 +46,13 @@ namespace Crazy_Lobby.Item
                         }
                     }
                 }
+            }
+
+            // Khởi tạo hiệu ứng khói ở đuôi
+            if (smokeTrailPrefab != null)
+            {
+                // Khởi tạo làm con của pháo hoa để nó di chuyển cùng pháo hoa
+                _spawnedSmokeTrail = Instantiate(smokeTrailPrefab, transform.position, transform.rotation, transform);
             }
         }
 
@@ -118,6 +127,15 @@ namespace Crazy_Lobby.Item
             {
                 Debug.Log($"[Firework] Gây sát thương cho: {target.Id}");
                 health.RPC_TakeDamage(1);
+
+                // Kích hoạt animation "die" trên Animator của người chơi bị trúng
+                // Giả định Animator của người chơi được quản lý bởi NetworkAnimator hoặc tương tự,
+                // nên việc kích hoạt trên StateAuthority sẽ được đồng bộ.
+                var targetAnimator = target.GetComponentInChildren<Animator>();
+                if (targetAnimator != null)
+                {
+                    targetAnimator.SetTrigger("die");
+                }
             }
         }
 
@@ -130,6 +148,15 @@ namespace Crazy_Lobby.Item
                 Instantiate(explosionEffectPrefab, transform.position, Quaternion.identity);
             }
             Runner.Despawn(Object); // Hủy đạn sau khi phát nổ
+        }
+        
+        public override void Despawned(NetworkRunner runner, bool hasState)
+        {
+            // Hủy hiệu ứng khói khi pháo hoa bị hủy
+            if (_spawnedSmokeTrail != null)
+            {
+                Destroy(_spawnedSmokeTrail);
+            }
         }
 
         public override void Render()

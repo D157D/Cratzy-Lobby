@@ -4,6 +4,7 @@ using Crazy_Lobby.Player;
 using Crazy_Lobby.Item;
 using Fusion;
 using System.Collections.Generic;
+using Crazy_Lobby.Enemy;
 
 [RequireComponent(typeof(NetworkCharacterController))]
 public class EnemyPatrol : NetworkBehaviour
@@ -19,6 +20,7 @@ public class EnemyPatrol : NetworkBehaviour
     private NavMeshAgent agent;
     private NetworkCharacterController _ncc;
     private CharacterAnimation _characterAnimation;
+    private EnemyCharacterHandler _characterHandler;
 
     public PatrolMode currentMode = PatrolMode.Random;
 
@@ -49,7 +51,19 @@ public class EnemyPatrol : NetworkBehaviour
 
         agent = GetComponent<NavMeshAgent>();
         _ncc = GetComponent<NetworkCharacterController>();
+        _characterHandler = GetComponent<EnemyCharacterHandler>();
+
         _characterAnimation = new CharacterAnimation(GetComponentInChildren<Animator>());
+        
+        if (_characterHandler != null)
+        {
+            _characterHandler.OnModelChanged += HandleModelChanged;
+            // If model is already spawned, update animator
+            var animator = GetComponentInChildren<Animator>();
+            if (animator != null)
+                _characterAnimation.SetAnimator(animator);
+        }
+
         agent.updateRotation = false; 
         agent.updatePosition = false; 
 
@@ -70,9 +84,23 @@ public class EnemyPatrol : NetworkBehaviour
         }
     }
 
+    private void HandleModelChanged(GameObject newModel)
+    {
+        if (_characterAnimation != null)
+        {
+            var animator = newModel.GetComponentInChildren<Animator>();
+            if (animator == null) animator = newModel.GetComponent<Animator>();
+            _characterAnimation.SetAnimator(animator);
+        }
+    }
+
     public override void Despawned(NetworkRunner runner, bool hasState)
     {
         ActiveEnemies.Remove(this);
+        if (_characterHandler != null)
+        {
+            _characterHandler.OnModelChanged -= HandleModelChanged;
+        }
     }
 
 

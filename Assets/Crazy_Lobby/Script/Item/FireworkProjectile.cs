@@ -18,6 +18,8 @@ namespace Crazy_Lobby.Item
         [Networked] private TickTimer LifeTimer { get; set; }
         [Networked] private TickTimer ShootUpTimer { get; set; }
 
+        [SerializeField] private GameObject explosionEffectPrefab; // Hiệu ứng phát nổ
+
         public override void Spawned()
         {
             if (HasStateAuthority)
@@ -49,7 +51,7 @@ namespace Crazy_Lobby.Item
         {
             if (HasStateAuthority && LifeTimer.Expired(Runner))
             {
-                Runner.Despawn(Object);
+                ExplodeAndDespawn(); // Phát nổ khi hết thời gian sống
                 return;
             }
 
@@ -71,6 +73,7 @@ namespace Crazy_Lobby.Item
                     if (HasStateAuthority && distance < 1.5f)
                     {
                         ApplyDamage(targetObj);
+                        ExplodeAndDespawn(); // Phát nổ khi tiếp cận mục tiêu
                         return;
                     }
                 }
@@ -78,16 +81,55 @@ namespace Crazy_Lobby.Item
 
             transform.position += transform.up * speed * Runner.DeltaTime;
         }
+        
+        private void OnTriggerEnter(Collider other)
+        {
+            if (!HasStateAuthority) return;
+
+            // Kiểm tra xem có trúng player không
+            var health = other.GetComponentInParent<PlayerHealth>();
+            if (health != null)
+            {
+                var playerObj = health.GetComponent<NetworkObject>();
+                // Đảm bảo không phải người bắn và là mục tiêu nếu TargetId hợp lệ, hoặc bất kỳ người chơi nào nếu TargetId không hợp lệ
+                if (playerObj != null && playerObj.Id != OwnerId && (!TargetId.IsValid || playerObj.Id == TargetId))
+                {
+                    ApplyDamage(playerObj);
+                    ExplodeAndDespawn(); // Phát nổ khi va chạm với người chơi
+                    return;
+                }
+            }
+            // Nếu trúng tường hoặc vật cản (không phải trigger)
+            else if (!other.isTrigger)
+            {
+                ExplodeAndDespawn(); // Phát nổ khi va chạm với vật cản
+                return;
+            }
+        }
 
         private void ApplyDamage(NetworkObject target)
         {
+            // Debug.Log($"[Firework] ApplyDamage called on {target.Id}");
+            // Sát thương được gây ra, nhưng việc hủy vật thể sẽ được xử lý bởi ExplodeAndDespawn
+            // Việc tách biệt này đảm bảo sát thương chỉ được áp dụng một lần và hiệu ứng nổ/hủy diễn ra nhất quán.
+
             var health = target.GetComponentInParent<PlayerHealth>();
             if (health != null)
             {
                 Debug.Log($"[Firework] Gây sát thương cho: {target.Id}");
                 health.RPC_TakeDamage(1);
             }
-            Runner.Despawn(Object);
+        }
+
+        private void ExplodeAndDespawn()
+        {
+            if (explosionEffectPrefab != null)
+            {
+                // Khởi tạo hiệu ứng phát nổ. Đây là hiệu ứng hình ảnh chỉ hiển thị ở phía client.
+                // Nếu hiệu ứng nổ cần được đồng bộ qua mạng (ví dụ: để gây sát thương diện rộng), bạn sẽ cần sử dụng Runner.Spawn.
+                Instantiate(explosionEffectPrefab, transform.position, Quaternion.identity);
+            }
+            Runner.Despawn(Object); // Hủy đạn sau khi phát nổ
         }
 
         public override void Render()

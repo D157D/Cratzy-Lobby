@@ -298,10 +298,12 @@ MonoBehaviour:
   speed: 15
   turnSpeed: 5
   lifeTime: 5
+  shootUpDuration: 0.5
   _OwnerId:
     Raw: 0
   _TargetId:
     Raw: 0
+  explosionEffectPrefab: {fileID: 2433282508537954060, guid: 3ef3ae421f71c5c4e97fe12dc2fc6312, type: 3}
 --- !u!114 &7246415567944534902
 MonoBehaviour:
   m_ObjectHideFlags: 0

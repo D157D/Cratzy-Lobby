@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: -1298496332321414653}
   - component: {fileID: -6711145401429750024}
   - component: {fileID: -3361772075137135526}
+  - component: {fileID: 7534112056461736902}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Untagged
@@ -105,10 +106,12 @@ MonoBehaviour:
   SortKey: 3098557273
   ObjectInterest: 1
   Flags: 262145
-  NestedObjects: []
+  NestedObjects:
+  - {fileID: 4878112638478793375}
   NetworkedBehaviours:
   - {fileID: -6711145401429750024}
   - {fileID: -3361772075137135526}
+  - {fileID: 7534112056461736902}
   ForceRemoteRenderTimeframe: 0
 --- !u!195 &-1298496332321414653
 NavMeshAgent:
@@ -146,10 +149,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentMode: 1
   patrolRadius: 20
+  patrolTimeout: 10
   visionRange: 10
   moveSpeed: 3
   acceleration: 100
   braking: 100
+  attackRange: 10
+  attackCooldown: 3
 --- !u!114 &-3361772075137135526
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -169,6 +175,19 @@ MonoBehaviour:
   braking: 10
   maxSpeed: 2
   rotationSpeed: 15
+--- !u!114 &7534112056461736902
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3534587539486237955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f764307decdef64e9e68933c4df5306, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _CurrentCharacter: 0
 --- !u!1001 &2363132926155832546
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -226,8 +245,20 @@ PrefabInstance:
       value: Mage
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 3dcb7923871a02e4288f8c602d3ab3f3, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 3dcb7923871a02e4288f8c602d3ab3f3, type: 3}
       propertyPath: m_TagString
       value: Untagged
+      objectReference: {fileID: 0}
+    - target: {fileID: 7167761902520698493, guid: 3dcb7923871a02e4288f8c602d3ab3f3, type: 3}
+      propertyPath: Flags
+      value: 262145
+      objectReference: {fileID: 0}
+    - target: {fileID: 7167761902520698493, guid: 3dcb7923871a02e4288f8c602d3ab3f3, type: 3}
+      propertyPath: SortKey
+      value: 1798081804
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -239,3 +270,14 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 3dcb7923871a02e4288f8c602d3ab3f3, type: 3}
   m_PrefabInstance: {fileID: 2363132926155832546}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &4878112638478793375 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7167761902520698493, guid: 3dcb7923871a02e4288f8c602d3ab3f3, type: 3}
+  m_PrefabInstance: {fileID: 2363132926155832546}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

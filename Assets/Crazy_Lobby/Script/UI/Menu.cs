@@ -28,10 +28,6 @@ namespace Crazy_Lobby.UI
         [Header("Room Panel (Room Management)")]
         public GameObject _CrazyLobby;
         public GameObject _room_panel;
-        // public Button _btnQuickJoin;
-        // public Button _btnCreateRoom;
-        // public Button _btnJoinByID;
-        // public TMP_InputField _roomIDInput;
 
         [Header("Animation Settings")]
         private Vector2 gameNameTargetPos = new Vector2(0, 300); 
@@ -54,9 +50,7 @@ namespace Crazy_Lobby.UI
             if (_Chose_login != null) _Chose_login.onClick.AddListener(ShowLoginPanel);
             if (_LoginButton != null) _LoginButton.onClick.AddListener(OnLoginClicked);
             if (_RegisterButton != null) _RegisterButton.onClick.AddListener(OnRegisterClicked);
-            // if (_btnQuickJoin != null) _btnQuickJoin.onClick.AddListener(OnQuickJoinClicked);
-            // if (_btnCreateRoom != null) _btnCreateRoom.onClick.AddListener(OnCreateRoomClicked);
-            // if (_btnJoinByID != null) _btnJoinByID.onClick.AddListener(OnJoinByIDClicked);
+          
 
             
         }
@@ -278,75 +272,6 @@ namespace Crazy_Lobby.UI
             if (_GameName != null) _GameName.gameObject.SetActive(false); 
         }
 
-        // private void OnQuickJoinClicked()
-        // {
-        //     StartRoom(GameMode.Client, string.Empty); 
-        // }
-
-        // private void OnCreateRoomClicked()
-        // {
-        //     string roomID = _roomIDInput != null && !string.IsNullOrEmpty(_roomIDInput.text) 
-        //                     ? _roomIDInput.text 
-        //                     : "Room_" + Random.Range(1000, 9999);
-        //     StartRoom(GameMode.Host, roomID);
-        // }
-
-        // private void OnJoinByIDClicked()
-        // {
-        //     string roomID = _roomIDInput != null ? _roomIDInput.text : "";
-        //     if (string.IsNullOrEmpty(roomID))
-        //     {
-        //         Debug.LogWarning("Vui lòng nhập ID phòng để Join!");
-        //         return;
-        //     }
-        //     StartRoom(GameMode.Client, roomID);
-        // }
-
-        // private async void StartRoom(GameMode mode, string roomID)
-        // {
-        //     if (_room_panel != null) _room_panel.SetActive(false);
-
-        //     NetworkRunner runner = FindObjectOfType<NetworkRunner>();
-        //     if (runner == null) runner = gameObject.AddComponent<NetworkRunner>();
-
-        //     runner.ProvideInput = true;
-            
-        //     var sceneManager = runner.gameObject.GetComponent<NetworkSceneManagerDefault>();
-        //     if (sceneManager == null) sceneManager = runner.gameObject.AddComponent<NetworkSceneManagerDefault>();
-
-        //     if (string.IsNullOrEmpty(roomID))
-        //         Debug.Log("Đang tìm phòng Public ngẫu nhiên... Vui lòng chờ.");
-        //     else
-        //         Debug.Log($"Đang kết nối vào phòng {roomID}... Vui lòng chờ.");
-
-        //     var args = new StartGameArgs()
-        //     {
-        //         GameMode = mode,
-        //         SessionName = roomID, 
-        //         SceneManager = sceneManager,
-        //         Scene = SceneRef.FromIndex(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex)
-        //     };
-
-        //     var result = await runner.StartGame(args);
-
-        //     if (result.Ok)
-        //     {
-        //         Debug.Log("<color=green>Vào phòng thành công!</color>");
-        //         if (_CrazyLobby != null) _CrazyLobby.SetActive(false);
-        //     }
-        //     else
-        //     {
-        //         if (_room_panel != null) _room_panel.SetActive(false);
-
-        //         if (mode == GameMode.Client && string.IsNullOrEmpty(roomID))
-        //         {
-        //             Debug.LogError("<color=red>Không tìm thấy phòng Public nào đang mở! Hãy tự tạo phòng mới.</color>");
-        //         }
-        //         else
-        //         {
-        //             Debug.LogError($"<color=red>Lỗi không thể tham gia: {result.ShutdownReason}</color>");
-        //         }
-        //     }
-        // }
+        
     }
 }

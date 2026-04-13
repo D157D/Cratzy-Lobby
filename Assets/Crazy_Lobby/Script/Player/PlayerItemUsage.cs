@@ -1,6 +1,7 @@
 using Crazy_Lobby.Item;
 using Fusion;
 using UnityEngine;
+using Crazy_Lobby.Enemy;
 
 namespace Crazy_Lobby.Player.Components
 {
@@ -16,64 +17,111 @@ namespace Crazy_Lobby.Player.Components
 
         public void UseFirework()
         {
-            // Logic chỉ được thực thi trên State Authority (Host/Server)
             if (!_player.HasStateAuthority) return;
 
-            Debug.Log("3. Host/Server đang xử lý bắn pháo hoa...");
-            NetworkId targetId = FindClosestPlayerTarget();
+            NetworkId targetId = FindClosestTarget();
 
-            // Bắt buộc phải có mục tiêu mới cho phép bắn pháo hoa
             if (!targetId.IsValid)
             {
-                Debug.LogWarning("Không có mục tiêu trong tầm, hủy thao tác bắn pháo hoa.");
                 return;
             }
 
             if (ItemManager.Instance != null && ItemManager.Instance.fireworkProjectilePrefab.IsValid)
             {
-                Debug.Log($"4. Sinh đạn thành công! Mục tiêu khoá mục tiêu ID: {targetId}");
-                _player.Runner.Spawn(ItemManager.Instance.fireworkProjectilePrefab,
-                    _player.transform.position + Vector3.up, // Sinh ra ở phía trên đầu người chơi
-                    Quaternion.identity,
-                    _player.Object.InputAuthority,
+                Quaternion randomRot = Quaternion.Euler(
+                    Random.Range(-30f, 30f),
+                    Random.Range(0f, 360f),
+                    Random.Range(-30f, 30f)
+                );
+
+                _player.Runner.Spawn(
+                    ItemManager.Instance.fireworkProjectilePrefab,
+                    _player.transform.position + Vector3.up,
+                    randomRot,
+                    _player.Object.StateAuthority,
                     (runner, obj) =>
                     {
-                        // Khởi tạo projectile sau khi sinh ra
                         var firework = obj.GetComponent<FireworkProjectile>();
                         if (firework != null)
                         {
                             firework.TargetId = targetId;
-                            // Gán OwnerId để đạn biết ai là người bắn và bỏ qua va chạm với người đó
                             firework.OwnerId = _player.Object.Id;
                         }
                     });
             }
             else
             {
-                Debug.LogError("LỖI: Không tìm thấy ItemManager hoặc chưa gắn Prefab Firework vào ItemManager!");
+                Debug.LogError("LỖI: Không tìm thấy ItemManager hoặc chưa gắn Prefab Firework!");
             }
         }
 
-        private NetworkId FindClosestPlayerTarget()
+        public void UseMagic()
+        {
+            if (!_player.HasStateAuthority) return;
+
+            if (ItemManager.Instance != null && ItemManager.Instance.Magic.IsValid)
+            {
+                Vector3 spawnPos = _player.transform.position 
+                    + _player.transform.forward * 1.5f 
+                    + Vector3.up * 1.2f;
+
+                Quaternion spawnRot = _player.transform.rotation;
+
+                _player.Runner.Spawn(
+                    ItemManager.Instance.Magic,
+                    spawnPos,
+                    spawnRot,
+                    _player.Object.StateAuthority,
+                    (runner, obj) =>
+                    {
+                        var magic = obj.GetComponent<MagicProjectile>();
+                        if (magic != null)
+                        {
+                            magic.OwnerId = _player.Object.Id;
+                        }
+                    });
+            }
+            else
+            {
+                Debug.LogWarning("Chưa gắn prefab Magic trong ItemManager!");
+            }
+        }
+
+        private NetworkId FindClosestTarget()
         {
             float closestDistSqr = float.MaxValue;
-            PlayerController closestPlayer = null;
+            NetworkObject closestObj = null;
 
-            // Dùng danh sách người chơi đang hoạt động để tìm mục tiêu
+            // Player
             foreach (var p in PlayerController.ActivePlayers)
             {
-                // Không nhắm vào chính mình, đối tượng null hoặc người chơi đã chết
                 if (p == null || p.Object == _player.Object || p.IsDead) continue;
 
                 float distSqr = (_player.transform.position - p.transform.position).sqrMagnitude;
                 if (distSqr < closestDistSqr && distSqr < _targetingRange * _targetingRange)
                 {
                     closestDistSqr = distSqr;
-                    closestPlayer = p;
+                    closestObj = p.Object;
                 }
             }
 
-            return closestPlayer != null ? closestPlayer.Object.Id : default;
+            // Enemy (FIXED)
+            foreach (var e in EnemyPatrol.ActiveEnemies)
+            {
+                if (e == null || e.Object == null || e.Object.Id == _player.Object.Id) continue;
+
+                var health = e.GetComponent<PlayerHealth>();
+                if (health != null && health.IsDead) continue;
+
+                float distSqr = (_player.transform.position - e.transform.position).sqrMagnitude;
+                if (distSqr < closestDistSqr && distSqr < _targetingRange * _targetingRange)
+                {
+                    closestDistSqr = distSqr;
+                    closestObj = e.Object;
+                }
+            }
+
+            return closestObj != null ? closestObj.Id : default;
         }
     }
 }

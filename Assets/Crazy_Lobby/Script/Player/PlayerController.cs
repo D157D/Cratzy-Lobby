@@ -14,7 +14,9 @@ public struct NetworkInputData : INetworkInput
     public float CameraYaw;
     public NetworkBool Jump;
     public NetworkBool UseItem;
+    public NetworkBool Magic;
 }
+
 [RequireComponent(typeof(NetworkCharacterController))]
 [RequireComponent(typeof(NetworkObject))]
 public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
@@ -30,6 +32,7 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 
     [Header("Item Settings")]
     private float itemCooldown = 3f;
+    private float magicCooldown = 1f;
 
     private NetworkCharacterController _ncc;
     private CharacterAnimation _characterAnimation;
@@ -41,8 +44,10 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
     private Vector2 _localMoveInput; 
     private bool _jumpPressed;
     private bool _useItemPressed;
+    private bool _magicPressed;
 
     [Networked] private TickTimer ItemCooldownTimer { get; set; }
+    [Networked] private TickTimer MagicCooldownTimer { get; set; }
     
     public NetworkId CurrentTargetId { get; internal set; }
     public bool IsDead { get; internal set; }
@@ -92,7 +97,7 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
             else
             {
                 // Tắt PlayerInput trên các nhân vật của người chơi khác (Proxy)
-                // để tránh việc chúng giành quyền điều khiển bàn phím/chuột của máy bạn
+                // để tránh việc chúng giành quyền điều khiển bàn phím/chuột của máy
                 PlayerInput playerInput = GetComponent<PlayerInput>();
                 if (playerInput != null)
                 {
@@ -128,8 +133,12 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 
     public void OnUseItem(InputValue value)
     {
-        Debug.Log("1. Unity đã nhận tín hiệu bấm phím E!");
         if (value.isPressed) _useItemPressed = true;
+    }
+
+    public void OnMagic(InputValue value)
+    {
+        if (value.isPressed) _magicPressed = true;
     }
 
     public override void FixedUpdateNetwork()
@@ -140,11 +149,29 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
         {
             _playerMovement.ProcessInput(data);
 
-            if (data.UseItem && ItemCooldownTimer.ExpiredOrNotRunning(Runner))
+            if (data.UseItem)
             {
-                Debug.Log("2. Gửi lệnh sử dụng vật phẩm lên mạng (Đã qua bước hồi chiêu)");
-                _playerItemUsage.UseFirework();
-                ItemCooldownTimer = TickTimer.CreateFromSeconds(Runner, itemCooldown);
+                    if(HasStateAuthority) 
+                    {
+                        if (ItemCooldownTimer.ExpiredOrNotRunning(Runner))
+                        {
+                            _playerItemUsage.UseFirework();
+                            ItemCooldownTimer = TickTimer.CreateFromSeconds(Runner, itemCooldown);
+                        }
+                    }
+            }
+
+            if (data.Magic)
+            {
+                if (HasStateAuthority)
+                {
+                    if (MagicCooldownTimer.ExpiredOrNotRunning(Runner))
+                    {
+                        _playerItemUsage.UseMagic();
+                        MagicCooldownTimer = TickTimer.CreateFromSeconds(Runner, magicCooldown);
+                        _characterAnimation.TriggerAttack();
+                    }
+                }
             }
         }
 
@@ -154,6 +181,15 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
     public override void Render()
     {
         if (IsDead) return;
+
+        if (_characterAnimation != null && _characterAnimation.GetAnimator() == null)
+        {
+            var animator = GetComponentInChildren<Animator>();
+            if (animator != null)
+            {
+                _characterAnimation.SetAnimator(animator);
+            }
+        }
 
         _playerMovement.UpdateAnimations();
     }
@@ -177,12 +213,15 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 
         data.Jump = _jumpPressed;
         data.UseItem = _useItemPressed;
+        data.Magic = _magicPressed;
 
         input.Set(data); 
         _jumpPressed = false;
         _useItemPressed = false;
+        _magicPressed = false;
     }
 
+  
     [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
     public void RPC_PickUpItem(string itemName, int amount)
     {
@@ -196,12 +235,20 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 
     private void HandleDeath()
     {
-        if (IsDead) return; // Already dead, do nothing.
+        if (IsDead) return;
 
         IsDead = true;
-        _ncc.enabled = false; // Disable character controller to stop movement
+        _ncc.enabled = false;   
 
-        // TODO: Play death animation via _characterAnimation
+        if (_characterAnimation != null)
+        {
+            if (_characterAnimation.GetAnimator() == null)
+            {
+                _characterAnimation.SetAnimator(GetComponentInChildren<Animator>());
+            }
+            _characterAnimation.TriggerDeath();
+        }
+
         Debug.Log($"Player {Object.Id} handling death on client.");
 
         if (HasInputAuthority)

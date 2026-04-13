@@ -185,6 +185,7 @@ GameObject:
   - component: {fileID: -757677202724190173}
   - component: {fileID: 660209016024494816}
   - component: {fileID: 4676139344219602933}
+  - component: {fileID: 7246415567944534902}
   m_Layer: 0
   m_Name: Rocket
   m_TagString: Untagged
@@ -232,6 +233,7 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 4676139344219602933}
+  - {fileID: 7246415567944534902}
   ForceRemoteRenderTimeframe: 0
 --- !u!54 &-757677202724190173
 Rigidbody:
@@ -293,8 +295,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bddc42315bd68624ea3fe7b86a70e987, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  speed: 15
+  turnSpeed: 5
+  lifeTime: 5
+  shootUpDuration: 0.5
+  _OwnerId:
+    Raw: 0
   _TargetId:
     Raw: 0
+  explosionEffectPrefab: {fileID: 2433282508537954060, guid: 3ef3ae421f71c5c4e97fe12dc2fc6312, type: 3}
+--- !u!114 &7246415567944534902
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4047992385210730683}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
 --- !u!1 &5830551069548275863
 GameObject:
   m_ObjectHideFlags: 0

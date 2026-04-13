@@ -6,16 +6,14 @@ using Fusion;
 using System.Collections.Generic;
 using Crazy_Lobby.Enemy;
 
-[RequireComponent(typeof(NetworkCharacterController))]
-public class EnemyPatrol : NetworkBehaviour
+public class EnemyPatrol : NetworkBehaviour // Removed RequireComponent as it's not always needed if spawned dynamically
 {
-    public static readonly List<EnemyPatrol> ActiveEnemies = new List<EnemyPatrol>();
-
     public enum PatrolMode
     {
         Random,
         FixedPoints
     }
+    public static readonly List<EnemyPatrol> ActiveEnemies = new List<EnemyPatrol>();
 
     private NavMeshAgent agent;
     private NetworkCharacterController _ncc;
@@ -31,6 +29,7 @@ public class EnemyPatrol : NetworkBehaviour
     public float visionRange = 10f;
 
     public float moveSpeed = 3f;   
+    public float rotationSpeed = 15f; // Tốc độ quay của kẻ địch khi nhắm mục tiêu
     public float acceleration = 100f;
     public float braking = 100f;
 
@@ -43,12 +42,12 @@ public class EnemyPatrol : NetworkBehaviour
     [Header("Attack Settings")]
     public float attackRange = 10f;
     public float attackCooldown = 3f;
+    [Networked] private NetworkBool IsAttacking { get; set; } // Trạng thái kẻ địch đang tấn công
+    [Networked] private TickTimer postAttackPatrolTimer { get; set; } // Thời gian kẻ địch tuần tra sau khi tấn công
     [Networked] private TickTimer attackTimer { get; set; }
 
     public override void Spawned()
     {
-        ActiveEnemies.Add(this);
-
         agent = GetComponent<NavMeshAgent>();
         _ncc = GetComponent<NetworkCharacterController>();
         _characterHandler = GetComponent<EnemyCharacterHandler>();
@@ -70,7 +69,6 @@ public class EnemyPatrol : NetworkBehaviour
         _ncc.maxSpeed = moveSpeed;
         _ncc.acceleration = acceleration;
         _ncc.braking = braking;
-        _ncc.rotationSpeed = 15f; 
 
         if (currentMode == PatrolMode.FixedPoints)
         {
@@ -96,7 +94,6 @@ public class EnemyPatrol : NetworkBehaviour
 
     public override void Despawned(NetworkRunner runner, bool hasState)
     {
-        ActiveEnemies.Remove(this);
         if (_characterHandler != null)
         {
             _characterHandler.OnModelChanged -= HandleModelChanged;
@@ -108,73 +105,76 @@ public class EnemyPatrol : NetworkBehaviour
     {
         if (!HasStateAuthority) return;
 
-        agent.nextPosition = transform.position;
+        agent.nextPosition = transform.position; // Đồng bộ vị trí NavMeshAgent với Fusion
 
-        FindAndChaseClosestPlayer();
+        Vector3 moveDirection = Vector3.zero; // Khởi tạo moveDirection
 
-        Vector3 moveDirection = Vector3.zero;
-
-        if (agent.hasPath || agent.pathPending)
+        if (IsAttacking)
         {
-            Vector3 targetDir = agent.steeringTarget - transform.position;
-            targetDir.y = 0f; 
-            if (targetDir.sqrMagnitude > 0.001f)
+            // Quay về phía người chơi mục tiêu
+            if (targetPlayer != null)
             {
-                moveDirection = targetDir.normalized;
+                Vector3 lookDirection = targetPlayer.position - transform.position;
+                lookDirection.y = 0; // Giữ cho việc quay chỉ trên mặt phẳng ngang
+                if (lookDirection != Vector3.zero)
+                {
+                    Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Runner.DeltaTime * rotationSpeed);
+                }
             }
+
+            // Nếu thời gian hồi chiêu tấn công đã hết, kết thúc trạng thái tấn công và quay lại tuần tra
+            if (attackTimer.Expired(Runner))
+                EndAttackAndResumePatrol();
+            
+            // Không di chuyển trong khi tấn công, nên moveDirection vẫn là Vector3.zero
         }
-
-        if (isChasing && targetPlayer != null)
+        else if (postAttackPatrolTimer.IsRunning)
         {
-            AttackPlayerIfPossible(targetPlayer);
+            // Kẻ địch đang trong thời gian tuần tra sau khi tấn công, bỏ qua việc tìm người chơi
+            HandlePatrolMovement(out moveDirection);
         }
-
-        if (!isChasing && !agent.pathPending)
+        else // Không tấn công và không trong thời gian hồi chiêu sau tấn công
         {
-            currentPatrolTimer += Runner.DeltaTime;
+            FindAndChaseClosestPlayer(); // Tìm và quyết định có đuổi theo/tấn công không
 
-            bool isUnreachable = agent.pathStatus == NavMeshPathStatus.PathPartial || agent.pathStatus == NavMeshPathStatus.PathInvalid;
-            bool isTimeout = currentPatrolTimer >= patrolTimeout;
-
-            if (agent.remainingDistance < 0.5f || isUnreachable || isTimeout)
+            if (isChasing && targetPlayer != null)
             {
-                if (currentMode == PatrolMode.Random)
+                // Nếu đang đuổi theo, đặt đích đến là người chơi
+                agent.SetDestination(targetPlayer.position);
+                if (agent.hasPath || agent.pathPending)
                 {
-                    SetRandomDestination();
-                }
-                else
-                {
-                    if (isUnreachable || isTimeout)
+                    Vector3 targetDir = agent.steeringTarget - transform.position;
+                    targetDir.y = 0f;
+                    if (targetDir.sqrMagnitude > 0.001f)
                     {
-                        if (TryGetValidPatrolPoint(out Vector3 newPoint))
-                        {
-                            fixedPoints[currentPointIndex] = newPoint;
-                        }
+                        moveDirection = targetDir.normalized;
                     }
-                    
-                    currentPointIndex = (currentPointIndex + 1) % fixedPoints.Length;
-                    agent.SetDestination(fixedPoints[currentPointIndex]);
-                    currentPatrolTimer = 0f; 
                 }
+            }
+            else // Không đuổi theo (không tìm thấy người chơi hoặc vừa kết thúc đuổi theo)
+            {
+                HandlePatrolMovement(out moveDirection); // Tiếp tục/bắt đầu tuần tra bình thường
             }
         }
 
         _ncc.Move(moveDirection);
     }
 
-    private void AttackPlayerIfPossible(Transform targetTransform)
+    private void TryAttackPlayer(Transform targetTransform)
     {
-        if (targetTransform == null) return;
-
-        // THÊM CHECK TIMER Ở ĐÂY
-        if (attackTimer.IsRunning) return;
+        // Nếu không có mục tiêu, đang trong thời gian hồi chiêu, hoặc đã trong trạng thái tấn công, thì không làm gì
+        if (targetTransform == null || attackTimer.IsRunning || IsAttacking) return;
 
         float distance = Vector3.Distance(transform.position, targetTransform.position);
         
         if (distance <= attackRange)
         {
             Vector3 origin = transform.position + Vector3.up;
-            Vector3 targetPos = targetTransform.position + Vector3.up;
+            Vector3 targetPos = targetTransform.position + Vector3.up * 1.2f; // Nhắm vào người chơi
+
+            // Kẻ địch sẽ quay mặt về hướng mục tiêu trong FixedUpdateNetwork khi IsAttacking là true.
+            // Ở đây chỉ kiểm tra tầm nhìn và bắn.
             Vector3 direction = (targetPos - origin).normalized;
 
             if (Physics.Raycast(origin, direction, out RaycastHit hit, attackRange))
@@ -182,6 +182,9 @@ public class EnemyPatrol : NetworkBehaviour
                 var hitPlayer = hit.transform.GetComponentInParent<NetworkCharacterController>();
                 if (hitPlayer != null && hitPlayer.transform == targetTransform)
                 {
+                    IsAttacking = true; // Đặt trạng thái đang tấn công. FixedUpdateNetwork sẽ xử lý dừng di chuyển và quay.
+                    agent.isStopped = true; // Dừng NavMeshAgent
+
                     if (ItemManager.Instance != null && ItemManager.Instance.fireworkProjectilePrefab.IsValid)
                     {
                         Quaternion randomRot = Quaternion.Euler(
@@ -205,8 +208,7 @@ public class EnemyPatrol : NetworkBehaviour
                             });
                     }
 
-                    // SET TIMER SAU KHI BẮN
-                    attackTimer = TickTimer.CreateFromSeconds(Runner, attackCooldown);
+                    attackTimer = TickTimer.CreateFromSeconds(Runner, attackCooldown); // Đặt thời gian hồi chiêu
                 }
             }
         }
@@ -215,10 +217,10 @@ public class EnemyPatrol : NetworkBehaviour
     private void FindAndChaseClosestPlayer()
     {
         Collider[] playersInRadius = Physics.OverlapSphere(transform.position, visionRange);
-
         float closestDistanceSqr = Mathf.Infinity;
         Transform closestPlayer = null;
 
+        // Tìm người chơi gần nhất trong tầm nhìn
         foreach (var col in playersInRadius)
         {
             if (col.CompareTag("Player"))
@@ -234,26 +236,81 @@ public class EnemyPatrol : NetworkBehaviour
 
         if (closestPlayer != null)
         {
-            isChasing = true;
-            targetPlayer = closestPlayer;
-            agent.SetDestination(closestPlayer.position);
+            targetPlayer = closestPlayer; // Luôn đặt mục tiêu nếu tìm thấy
+
+            // Thử tấn công người chơi. TryAttackPlayer sẽ đặt IsAttacking = true nếu thành công.
+            TryAttackPlayer(closestPlayer);
+
+            // Nếu vừa bắt đầu tấn công (IsAttacking là true), hoặc đang tấn công, thì không đuổi theo
+            if (IsAttacking)
+            {
+                isChasing = false; // Đang trong trạng thái tấn công, không phải đuổi theo
+                // NavMeshAgent đã được dừng bởi TryAttackPlayer.
+                // Di chuyển sẽ được xử lý bởi khối IsAttacking trong FixedUpdateNetwork.
+            }
+            else
+            {
+                // Nếu tìm thấy người chơi nhưng không thể tấn công (ví dụ: đang hồi chiêu), thì đuổi theo
+                isChasing = true;
+                // agent.SetDestination sẽ được gọi trong FixedUpdateNetwork nếu isChasing là true
+            }
+        }
+        else // Không tìm thấy người chơi trong tầm nhìn
+        {
+            targetPlayer = null; // Xóa mục tiêu
+            isChasing = false; // Dừng đuổi theo
+        }
+    }
+    
+    private void EndAttackAndResumePatrol()
+    {
+        IsAttacking = false; // Kết thúc trạng thái tấn công
+        agent.isStopped = false; // Tiếp tục di chuyển NavMeshAgent
+        postAttackPatrolTimer = TickTimer.CreateFromSeconds(Runner, 5f); // Bắt đầu thời gian tuần tra sau tấn công (5 giây)
+        isChasing = false; // Dừng đuổi theo
+
+        if (currentMode == PatrolMode.Random)
+        {
+            SetRandomDestination();
         }
         else
         {
-            targetPlayer = null;
-            if (isChasing)
+            agent.SetDestination(fixedPoints[currentPointIndex]);
+        }
+        currentPatrolTimer = 0f; // Đặt lại bộ đếm thời gian tuần tra để tìm điểm đến mới ngay lập tức.
+    }
+
+    private void HandlePatrolMovement(out Vector3 moveDirection)
+    {
+        moveDirection = Vector3.zero;
+
+        if (agent.hasPath || agent.pathPending)
+        {
+            Vector3 targetDir = agent.steeringTarget - transform.position;
+            targetDir.y = 0f;
+            if (targetDir.sqrMagnitude > 0.001f)
             {
-                isChasing = false;
-                currentPatrolTimer = 0f; 
-                if (currentMode == PatrolMode.Random)
-                {
-                    SetRandomDestination();
-                }
-                else
-                {
-                    agent.SetDestination(fixedPoints[currentPointIndex]);
-                }
+                moveDirection = targetDir.normalized;
             }
+        }
+
+        currentPatrolTimer += Runner.DeltaTime;
+
+        bool isUnreachable = agent.pathStatus == NavMeshPathStatus.PathPartial || agent.pathStatus == NavMeshPathStatus.PathInvalid;
+        bool isTimeout = currentPatrolTimer >= patrolTimeout;
+
+        if (agent.remainingDistance < 0.5f || isUnreachable || isTimeout)
+        {
+            if (currentMode == PatrolMode.Random)
+            {
+                SetRandomDestination();
+            }
+            else
+            {
+                currentPointIndex = (currentPointIndex + 1) % fixedPoints.Length;
+                agent.SetDestination(fixedPoints[currentPointIndex]);
+            }
+            currentPatrolTimer = 0f; // Đặt lại bộ đếm thời gian tuần tra
         }
     }
 
@@ -273,10 +330,15 @@ public class EnemyPatrol : NetworkBehaviour
             {
                 fixedPoints[i] = point;
             }
+            // Fallback nếu không tìm được điểm hợp lệ, đặt tại vị trí hiện tại
             else
             {
                 fixedPoints[i] = transform.position;
             }
+            // Đảm bảo NavMeshAgent có đường đi hợp lệ đến điểm cố định ban đầu
+            NavMeshPath path = new NavMeshPath();
+            if (NavMesh.CalculatePath(transform.position, fixedPoints[i], NavMesh.AllAreas, path) && path.status == NavMeshPathStatus.PathComplete)
+                agent.SetDestination(fixedPoints[i]);
         }
     }
 

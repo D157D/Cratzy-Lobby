@@ -12,6 +12,10 @@ public class BootstrapUIManager : MonoBehaviour
     public Button btnCreateRoom;
     public Button btnJoinByID;
     public Button playButton;
+    
+    [Header("Room Type Settings")]
+    public Toggle privateRoomToggle; // Toggle để chọn phòng riêng tư
+    public TextMeshProUGUI roomTypeDisplayText; // Text hiển thị trạng thái phòng (Public/Private)
 
     public TMP_InputField roomIDInput;
     public TextMeshProUGUI IDText;
@@ -50,6 +54,8 @@ public class BootstrapUIManager : MonoBehaviour
             roomIDInput.onValueChanged.AddListener(delegate { ShowID(); });
         }
 
+        if (privateRoomToggle != null) privateRoomToggle.onValueChanged.AddListener(OnPrivateRoomToggleChanged);
+
         ShowConnectionUI();
         ShowID();
     }
@@ -63,12 +69,25 @@ public class BootstrapUIManager : MonoBehaviour
                 OnPlayClicked();
             }
         }
+        // Bấm Tab để chuyển đổi giữa phòng riêng tư và công khai
+        if (Input.GetKeyDown(KeyCode.Tab))
+        {
+            if (privateRoomToggle != null)
+            {
+                privateRoomToggle.isOn = !privateRoomToggle.isOn; // Toggle the state
+            }
+        }
     }
 
     private void OnPlayClicked()
     {
         if (_bootstrap == null) return;
         _bootstrap.OnPlayClicked(gameSceneName);
+    }
+
+    private void OnPrivateRoomToggleChanged(bool isPrivate)
+    {
+        ShowID(); // Cập nhật hiển thị ID
     }
 
     private string GenerateRoomID()
@@ -90,7 +109,7 @@ public class BootstrapUIManager : MonoBehaviour
         string roomID = roomIDInput != null ? roomIDInput.text : "000";
 
         ShowLoadingPanel(true);
-        _bootstrap.StartRoom(GameMode.AutoHostOrClient, roomID);
+        _bootstrap.StartRoom(GameMode.AutoHostOrClient, roomID, privateRoomToggle.isOn);
     }
 
     private void OnCreateRoomClicked()
@@ -107,7 +126,7 @@ public class BootstrapUIManager : MonoBehaviour
         string roomID = roomIDInput != null ? roomIDInput.text : "000";
 
         ShowLoadingPanel(true);
-        _bootstrap.StartRoom(GameMode.Host, roomID);
+        _bootstrap.StartRoom(GameMode.Host, roomID, privateRoomToggle.isOn);
     }
 
     private void OnJoinByIDClicked()
@@ -125,7 +144,7 @@ public class BootstrapUIManager : MonoBehaviour
         ShowID();
 
         ShowLoadingPanel(true);
-        _bootstrap.StartRoom(GameMode.Client, roomID);
+        _bootstrap.StartRoom(GameMode.Client, roomID, true); // Luôn là phòng riêng tư khi join bằng ID
     }
 
     public void ShowLobby(bool isHost, string roomName)
@@ -141,6 +160,7 @@ public class BootstrapUIManager : MonoBehaviour
 
     public void ShowConnectionUI()
     {
+        OnPrivateRoomToggleChanged(privateRoomToggle != null && privateRoomToggle.isOn); // Cập nhật trạng thái ban đầu của UI
         if (IngamePanel != null) IngamePanel.SetActive(false);
     }
 
@@ -154,6 +174,15 @@ public class BootstrapUIManager : MonoBehaviour
                 IDText.text = "ID : ---";
             else
                 IDText.text = $"ID : {id}";
+        }
+
+        // Cập nhật text hiển thị loại phòng (Public/Private)
+        if (roomTypeDisplayText != null && privateRoomToggle != null)
+        {
+            if (privateRoomToggle.isOn)
+                roomTypeDisplayText.text = "Private";
+            else
+                roomTypeDisplayText.text = "Public";
         }
     }
 

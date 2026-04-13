@@ -65,6 +65,7 @@ namespace Crazy_Lobby.UI
         {
             FriendsPanels.SetActive(true);
             OpenCurrentFriendsList();
+            LoadFriendsList(); // Tự động tải danh sách bạn bè khi mở panel
         }
 
         private void CloseFriendsPanels()
@@ -83,8 +84,8 @@ namespace Crazy_Lobby.UI
         {
             FriendsRequestContainer.gameObject.SetActive(false);
             FriendsContainer.gameObject.SetActive(true);
-            FindFriendsInput.gameObject.SetActive(true);   
-            OpenMyFriendsList.gameObject.SetActive(false);
+            FindFriendsInput.gameObject.SetActive(true);
+            // OpenMyFriendsList.gameObject.SetActive(false); // Commented out as per request
             FindFriendsInput.text = "";
         }
         

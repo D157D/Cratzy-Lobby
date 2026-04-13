@@ -1,6 +1,7 @@
 using Fusion;
 using UnityEngine;
 
+using Crazy_Lobby.Enemy; // Thêm namespace cho EnemySpawnManager
 public class Bootstrap : MonoBehaviour 
 {
     private BootstrapUIManager _uiManager;
@@ -8,6 +9,9 @@ public class Bootstrap : MonoBehaviour
 
     private bool _isConnecting = false;
     private float _connectionStartTime = 0f;
+
+    [Header("Prefabs")]
+    public NetworkPrefabRef enemySpawnManagerPrefab; // Kéo prefab EnemySpawnManager vào đây
 
     private void Awake()
     {
@@ -33,7 +37,7 @@ public class Bootstrap : MonoBehaviour
         }
     }
 
-    public async void StartRoom(GameMode mode, string sessionName)
+    public async void StartRoom(GameMode mode, string sessionName, bool isPrivate)
     {
         if (_runner != null)
         {
@@ -52,7 +56,9 @@ public class Bootstrap : MonoBehaviour
         var args = new StartGameArgs()
         {
             GameMode = mode,
-            SessionName = sessionName, 
+            SessionName = sessionName,
+            IsVisible = !isPrivate, // Phòng riêng tư thì không hiển thị trong danh sách
+            IsOpen = !isPrivate,     // Phòng riêng tư thì không mở để quick join
             SceneManager = sceneManager,
             Scene = SceneRef.FromIndex(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex)
         };
@@ -79,6 +85,16 @@ public class Bootstrap : MonoBehaviour
             string currentRoomId = _runner.SessionInfo.Name;
 
             Debug.Log($"<color=green>Vào phòng thành công! Mode: {mode} - RoomID: {currentRoomId}. Thời gian kết nối: {Time.time - _connectionStartTime:F1}s</color>");
+
+            // Nếu là Host/Server, spawn EnemySpawnManager
+            if (_runner.IsServer && enemySpawnManagerPrefab.IsValid)
+            {
+                NetworkObject spawnedManager = _runner.Spawn(enemySpawnManagerPrefab, Vector3.zero, Quaternion.identity, _runner.LocalPlayer);
+                if (spawnedManager != null)
+                {
+                    spawnedManager.GetComponent<EnemySpawnManager>().IsPrivateRoom = isPrivate;
+                }
+            }
             
             if (_uiManager != null) _uiManager.ShowLobby(_runner.IsServer, currentRoomId);
         }

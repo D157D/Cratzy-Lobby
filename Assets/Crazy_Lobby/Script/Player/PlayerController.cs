@@ -34,6 +34,8 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
     private float itemCooldown = 3f;
     private float magicCooldown = 1f;
 
+    [Networked] public NetworkBool CanShoot { get; set; }
+    
     private NetworkCharacterController _ncc;
     private CharacterAnimation _characterAnimation;
     private PlayerMovement _playerMovement;
@@ -149,7 +151,7 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
         {
             _playerMovement.ProcessInput(data);
 
-            if (data.UseItem)
+            if (data.UseItem && CanShoot)
             {
                     if(HasStateAuthority) 
                     {
@@ -161,7 +163,7 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
                     }
             }
 
-            if (data.Magic)
+            if (data.Magic && CanShoot)
             {
                 if (HasStateAuthority)
                 {

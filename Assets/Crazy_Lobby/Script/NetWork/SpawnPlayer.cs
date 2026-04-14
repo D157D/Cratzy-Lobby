@@ -2,6 +2,8 @@ using System.Linq;
 using Fusion;
 using UnityEngine;
 using Crazy_Lobby.Enemy;
+using UnityEngine.SceneManagement;
+
 public class SpawnPlayer : NetworkBehaviour, IPlayerJoined
 {
     public NetworkPrefabRef _player;
@@ -11,6 +13,58 @@ public class SpawnPlayer : NetworkBehaviour, IPlayerJoined
     private bool _hasFilledBots = false;
 
     private const int MAX_PLAYERS = 10;
+
+    private void Start()
+    {
+        if (SceneManager.GetActiveScene().name == "Ending")
+        {
+            StartCoroutine(WaitAndSpawnEnding());
+        }
+    }
+
+    private System.Collections.IEnumerator WaitAndSpawnEnding()
+    {
+        CharacterDatabase database = null;
+        
+        // Cố gắng tìm database cho đến khi thấy
+        while (database == null)
+        {
+            database = FindFirstObjectByType<CharacterDatabase>();
+            if (database == null)
+            {
+                yield return null; // Chờ frame tiếp theo
+            }
+        }
+
+        SpawnLocalPlayersFromDatabase(database);
+    }
+
+    private void SpawnLocalPlayersFromDatabase(CharacterDatabase database)
+    {
+        CharacterType selectedType = CharacterSaveManager.Load();
+        CharacterEntry entry = database.GetEntry(selectedType);
+
+        if (entry.ModelPrefab != null)
+        {
+            Vector3 spawnPosition = Vector3.zero;
+            if (spawnPoints != null && spawnPoints.Length > 0)
+            {
+                spawnPosition = spawnPoints[0].position; // Spawn tại điểm đầu tiên
+            }
+
+            GameObject spawned = Instantiate(entry.ModelPrefab, spawnPosition, Quaternion.Euler(0, 180f, 0));
+            
+            Animator animator = spawned.GetComponentInChildren<Animator>();
+            if (animator != null)
+            {
+                animator.SetTrigger("win");
+            }
+        }
+        else
+        {
+            Debug.LogError($"[SpawnPlayer] Không tìm thấy prefab cho nhân vật {selectedType}!");
+        }
+    }
 
     public override void Spawned()
     {

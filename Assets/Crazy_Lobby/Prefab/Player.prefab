@@ -246,6 +246,8 @@ GameObject:
   - component: {fileID: -7532528536017543499}
   - component: {fileID: 2940381051542850616}
   - component: {fileID: -7776278523305512593}
+  - component: {fileID: 7890634219418319417}
+  - component: {fileID: 7848983371168409189}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -343,6 +345,8 @@ MonoBehaviour:
   - {fileID: -7532528536017543499}
   - {fileID: 2940381051542850616}
   - {fileID: -7776278523305512593}
+  - {fileID: 7890634219418319417}
+  - {fileID: 7848983371168409189}
   - {fileID: 5283761654573399856}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &-136467381510503303
@@ -438,6 +442,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _IsDead:
     _value: 0
+  _initialMaxHealth: 500
 --- !u!114 &-7776278523305512593
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -451,3 +456,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _CurrentCharacter: 2
+--- !u!114 &7890634219418319417
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3534587539486237955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb2c59beb92274074839d6eb897b35dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &7848983371168409189
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3534587539486237955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67d3d4c85ee4d42dba5dc4cfb4b03dd4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _ItemCount: 0

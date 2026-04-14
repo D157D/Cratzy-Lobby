@@ -3,8 +3,7 @@ using Fusion;
 
 public class Playerrunner : SimulationBehaviour, IPlayerJoined
 {
-    [SerializeField]
-    GameObject playerPrefab;
+    [SerializeField] private GameObject playerPrefab;
 
     public void PlayerJoined(PlayerRef player)
     {
@@ -16,7 +15,7 @@ public class Playerrunner : SimulationBehaviour, IPlayerJoined
                 playerPrefab,
                 spawnPos,
                 Quaternion.identity,
-                player // 🔥 GÁN QUYỀN ĐIỀU KHIỂN
+                player // 🔥 QUAN TRỌNG
             );
         }
     }

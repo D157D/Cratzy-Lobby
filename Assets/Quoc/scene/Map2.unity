@@ -391,7 +391,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   waypointTag: Waypointt
-  patrolSpeed: 5
+  patrolSpeed: 10
   jumpHeight: 1.5
   jumpDuration: 0.5
 --- !u!4 &23618750
@@ -2587,7 +2587,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   waypointTag: Waypoint
-  patrolSpeed: 5
+  patrolSpeed: 10
   jumpHeight: 1.5
   jumpDuration: 0.5
 --- !u!4 &330268778
@@ -7113,7 +7113,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   waypointTag: Waypoint
-  patrolSpeed: 5
+  patrolSpeed: 10
   jumpHeight: 1.5
   jumpDuration: 0.5
 --- !u!4 &1047789975
@@ -10171,7 +10171,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   waypointTag: Waypointt
-  patrolSpeed: 5
+  patrolSpeed: 10
   jumpHeight: 1.5
   jumpDuration: 0.5
 --- !u!4 &1398733803
@@ -11875,7 +11875,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   RunnerPrefab: {fileID: 1773241438}
-  StartMode: 0
+  StartMode: 2
   AutoStartAs: 2
   AutoHideGUI: 1
   AutoClients: 1
@@ -12792,7 +12792,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   waypointTag: Waypointt
-  patrolSpeed: 5
+  patrolSpeed: 10
   jumpHeight: 1.5
   jumpDuration: 0.5
 --- !u!4 &1748391416

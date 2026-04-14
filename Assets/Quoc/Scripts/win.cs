@@ -1,11 +1,15 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class SceneLoader : MonoBehaviour
+public class SceneTrigger : MonoBehaviour
 {
     public string sceneName;
-    public void LoadScene(string sceneName)
+
+    private void OnTriggerEnter(Collider other)
     {
-        SceneManager.LoadScene(sceneName);
+        if (other.CompareTag("Player"))
+        {
+            SceneManager.LoadScene(sceneName);
+        }
     }
 }

@@ -48,16 +48,29 @@ public class SpawnPlayer : NetworkBehaviour, IPlayerJoined
 
     private void SpawnBot()
     {
-        Vector3 spawnPosition = _enemySpawn.position + new Vector3(Random.Range(-5f, 5f), 0, Random.Range(-5f, 5f));
+        Vector3 spawnPosition = Vector3.zero;
+        if (_enemySpawn != null)
+        {
+            spawnPosition = _enemySpawn.position + new Vector3(Random.Range(-5f, 5f), 0, Random.Range(-5f, 5f));
+        }
+        else
+        {
+            Debug.LogWarning("[SpawnPlayer] _enemySpawn is null. Spawning bot at Vector3.zero.");
+        }
         
         CharacterType randomChar = (CharacterType)Random.Range(0, System.Enum.GetValues(typeof(CharacterType)).Length);
 
-        Runner.Spawn(_enemy, spawnPosition, Quaternion.identity, onBeforeSpawned: (runner, obj) => {
-            if (obj.TryGetComponent<EnemyCharacterHandler>(out var charHandler))
-            {
-                charHandler.CurrentCharacter = randomChar;
-            }
-        });
+        if (_enemy.IsValid) // Check if NetworkPrefabRef is valid (not null/empty)
+        {
+            Runner.Spawn(_enemy, spawnPosition, Quaternion.identity, onBeforeSpawned: (runner, obj) => {
+                if (obj.TryGetComponent<EnemyCharacterHandler>(out var charHandler))
+                {
+                    charHandler.CurrentCharacter = randomChar;
+                }
+            });
+        } else {
+            Debug.LogWarning("[SpawnPlayer] _enemy prefab is not assigned. Cannot spawn bot.");
+        }
     }
 
     public void PlayerJoined(PlayerRef player)

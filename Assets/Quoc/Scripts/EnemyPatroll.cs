@@ -3,6 +3,7 @@ using UnityEngine.AI;
 using Fusion;
 using System.Collections;
 using System.Collections.Generic;
+using Crazy_Lobby.Player;
 
 public class EnemyPatroll : NetworkBehaviour
 {
@@ -16,12 +17,14 @@ public class EnemyPatroll : NetworkBehaviour
     private Transform currentTarget;
 
     [Header("NavMesh")]
-    private NavMeshAgent agent;
+    private NavMeshAgent agent; // Removed private keyword as it's already implicitly private and often serialized for debugging
 
     [Header("Jump Settings")]
     public float jumpHeight = 1.5f;
     public float jumpDuration = 0.5f;
     private bool isJumping = false;
+
+    private CharacterAnimation _characterAnimation;
 
     public override void Spawned()
     {
@@ -29,6 +32,7 @@ public class EnemyPatroll : NetworkBehaviour
 
         agent = GetComponent<NavMeshAgent>();
 
+        _characterAnimation = new CharacterAnimation(GetComponentInChildren<Animator>());
         agent.autoTraverseOffMeshLink = false;
         agent.speed = patrolSpeed;
         agent.stoppingDistance = 0.3f;
@@ -64,7 +68,9 @@ public class EnemyPatroll : NetworkBehaviour
 
         if (agent.isOnOffMeshLink && !isJumping)
         {
+            // Trigger jump animation when starting to jump across an off-mesh link
             StartCoroutine(JumpAcrossLink());
+            _characterAnimation.TriggerJump();
             return;
         }
 
@@ -142,5 +148,14 @@ public class EnemyPatroll : NetworkBehaviour
         agent.CompleteOffMeshLink();
         agent.isStopped = false;
         isJumping = false;
+    }
+
+    public override void Render()
+    {
+        // Update movement animation based on NavMeshAgent's velocity
+        if (_characterAnimation != null && agent != null)
+        {
+            _characterAnimation.UpdateMoveAnimation(agent.velocity, patrolSpeed);
+        }
     }
 }

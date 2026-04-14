@@ -17,6 +17,9 @@ public class ChatLobbyRunner : MonoBehaviour, INetworkRunnerCallbacks
     public GameObject chatManagerPrefab;
 
     private NetworkRunner _runner;
+    public bool IsStarting => _isStarting;
+    public bool IsConnected => _isConnected;
+
     private bool _isStarting = false;
     private bool _isConnected = false;
 

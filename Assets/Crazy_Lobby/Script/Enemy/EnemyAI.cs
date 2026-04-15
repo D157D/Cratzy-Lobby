@@ -47,6 +47,7 @@ public class EnemyPatrol : NetworkBehaviour
     [Networked] private TickTimer attackTimer { get; set; }
     [Networked] public NetworkBool IsDead { get; set; }
     [Networked] private TickTimer StunTimer { get; set; }
+    [Networked] public NetworkBool CanShoot { get; set; }
 
     public override void Spawned()
     {
@@ -169,7 +170,7 @@ public class EnemyPatrol : NetworkBehaviour
 
     private void TryAttackPlayer(Transform targetTransform)
     {
-        if (targetTransform == null || attackTimer.IsRunning || IsAttacking) return;
+        if (targetTransform == null || attackTimer.IsRunning || IsAttacking || !CanShoot) return;
 
         float distance = Vector3.Distance(transform.position, targetTransform.position);
         

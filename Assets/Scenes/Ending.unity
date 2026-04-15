@@ -5807,75 +5807,6 @@ Transform:
   - {fileID: 808386100}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1502516333
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1502516334}
-  - component: {fileID: 1502516335}
-  m_Layer: 0
-  m_Name: database
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1502516334
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1502516333}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.41031408, y: 1.4418464, z: 0.30871964}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1502516335
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1502516333}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0a4e76ec8269b0740a4edae0a29e2240, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  character:
-  - Type: 0
-    ModelPrefab: {fileID: 919132149155446097, guid: 56b4a0ca8daa0154387f58eb3154ab99, type: 3}
-    Icon: {fileID: 2004579784, guid: 6a505ba57e0a0704a874ffb6a313af0f, type: 3}
-    DisplayName: Babarian
-  - Type: 1
-    ModelPrefab: {fileID: 919132149155446097, guid: 95bff2ae58cd81f4a8c72e949ec3ef60, type: 3}
-    Icon: {fileID: 1272854651, guid: 6a505ba57e0a0704a874ffb6a313af0f, type: 3}
-    DisplayName: Druid
-  - Type: 2
-    ModelPrefab: {fileID: 919132149155446097, guid: 6836de3d369291043832cd011ae12520, type: 3}
-    Icon: {fileID: -1244791560, guid: 6a505ba57e0a0704a874ffb6a313af0f, type: 3}
-    DisplayName: Engineer
-  - Type: 3
-    ModelPrefab: {fileID: 919132149155446097, guid: 3b727a3386c29f948bf89db4481e7615, type: 3}
-    Icon: {fileID: 353050877, guid: 6a505ba57e0a0704a874ffb6a313af0f, type: 3}
-    DisplayName: Knight
-  - Type: 4
-    ModelPrefab: {fileID: 919132149155446097, guid: 3dcb7923871a02e4288f8c602d3ab3f3, type: 3}
-    Icon: {fileID: 1046016648, guid: 6a505ba57e0a0704a874ffb6a313af0f, type: 3}
-    DisplayName: Mage
-  - Type: 5
-    ModelPrefab: {fileID: 919132149155446097, guid: 93dcf3e1d678002459f1bc4d482228d5, type: 3}
-    Icon: {fileID: 277682840, guid: 6a505ba57e0a0704a874ffb6a313af0f, type: 3}
-    DisplayName: Range
 --- !u!4 &1552250444 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7194952087870367275, guid: c04fee9d804895a4aa903383453b9c25, type: 3}
@@ -6017,6 +5948,51 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!1 &1786687432
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1786687434}
+  - component: {fileID: 1786687433}
+  m_Layer: 0
+  m_Name: Load
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1786687433
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1786687432}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7cdb56fe347aaf84eb410141b7bda98c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lobbySceneName: Login_Crazy
+--- !u!4 &1786687434
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1786687432}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 30.249807, y: 19.995504, z: 10.31503}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1872633748
 GameObject:
   m_ObjectHideFlags: 0
@@ -6457,7 +6433,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   RunnerPrefab: {fileID: 1966624203}
-  StartMode: 0
+  StartMode: 2
   AutoStartAs: 2
   AutoHideGUI: 1
   AutoClients: 1
@@ -7071,4 +7047,4 @@ SceneRoots:
   - {fileID: 859877953}
   - {fileID: 1976082399}
   - {fileID: 1966624204}
-  - {fileID: 1502516334}
+  - {fileID: 1786687434}

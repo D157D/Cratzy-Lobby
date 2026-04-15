@@ -19,40 +19,45 @@ namespace Crazy_Lobby.Player.Components
         {
             if (!_player.HasStateAuthority) return;
 
-            NetworkId targetId = FindClosestTarget();
-
-            if (!targetId.IsValid)
+            if (ItemManager.Instance == null || !ItemManager.Instance.fireworkProjectilePrefab.IsValid)
             {
+                Debug.LogError("LỖI: Không tìm thấy ItemManager hoặc chưa gắn Prefab Firework!");
                 return;
             }
 
-            if (ItemManager.Instance != null && ItemManager.Instance.fireworkProjectilePrefab.IsValid)
+            NetworkId targetId = FindClosestTarget();
+
+            // Nếu có target: bắn với góc ngẫu nhiên và tự truy đuổi
+            // Nếu không có target: bắn thẳng về phía trước của player
+            Quaternion spawnRot;
+            if (targetId.IsValid)
             {
-                Quaternion randomRot = Quaternion.Euler(
+                spawnRot = Quaternion.Euler(
                     Random.Range(-30f, 30f),
                     Random.Range(0f, 360f),
                     Random.Range(-30f, 30f)
                 );
-
-                _player.Runner.Spawn(
-                    ItemManager.Instance.fireworkProjectilePrefab,
-                    _player.transform.position + Vector3.up,
-                    randomRot,
-                    _player.Object.StateAuthority,
-                    (runner, obj) =>
-                    {
-                        var firework = obj.GetComponent<FireworkProjectile>();
-                        if (firework != null)
-                        {
-                            firework.TargetId = targetId;
-                            firework.OwnerId = _player.Object.Id;
-                        }
-                    });
             }
             else
             {
-                Debug.LogError("LỖI: Không tìm thấy ItemManager hoặc chưa gắn Prefab Firework!");
+                // Bắn thẳng về hướng player đang nhìn (forward = up của firework vì projectile bay theo trục Y)
+                spawnRot = Quaternion.LookRotation(_player.transform.forward) * Quaternion.Euler(90f, 0f, 0f);
             }
+
+            _player.Runner.Spawn(
+                ItemManager.Instance.fireworkProjectilePrefab,
+                _player.transform.position + Vector3.up,
+                spawnRot,
+                _player.Object.StateAuthority,
+                (runner, obj) =>
+                {
+                    var firework = obj.GetComponent<FireworkProjectile>();
+                    if (firework != null)
+                    {
+                        firework.TargetId = targetId; // Có thể là default nếu không có target
+                        firework.OwnerId = _player.Object.Id;
+                    }
+                });
         }
 
         public void UseMagic()

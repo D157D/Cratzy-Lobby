@@ -306,7 +306,7 @@ GameObject:
   - component: {fileID: 23618746}
   m_Layer: 0
   m_Name: ene
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2557,7 +2557,7 @@ GameObject:
   - component: {fileID: 330268774}
   m_Layer: 0
   m_Name: ene
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -6092,7 +6092,7 @@ GameObject:
   - component: {fileID: 806130690}
   m_Layer: 0
   m_Name: Enemy
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -7605,7 +7605,7 @@ GameObject:
   - component: {fileID: 1047789971}
   m_Layer: 0
   m_Name: ene
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -10508,7 +10508,7 @@ GameObject:
   - component: {fileID: 1398733799}
   m_Layer: 0
   m_Name: ene
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -13428,7 +13428,7 @@ GameObject:
   - component: {fileID: 1748391417}
   m_Layer: 0
   m_Name: ene
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -20107,7 +20107,7 @@ GameObject:
   - component: {fileID: 8696341370108242312}
   m_Layer: 0
   m_Name: Barbarian
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

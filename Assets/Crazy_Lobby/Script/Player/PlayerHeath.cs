@@ -24,7 +24,7 @@ public class PlayerHealth : NetworkBehaviour
 
     private ChangeDetector _changeDetector;
 
-    [SerializeField] private int _initialMaxHealth = 500;
+    [SerializeField] private int _initialMaxHealth = 3;
 
     public override void Spawned()
     {

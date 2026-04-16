@@ -20,8 +20,8 @@ public struct NetworkInputData : INetworkInput
 
 [RequireComponent(typeof(NetworkCharacterController))]
 [RequireComponent(typeof(NetworkObject))]
-[RequireComponent(typeof(PlayerCombat))] // Tự động thêm script Combat
-[RequireComponent(typeof(PlayerAudio))]  // Tự động thêm script Audio
+[RequireComponent(typeof(PlayerCombat))] 
+[RequireComponent(typeof(PlayerAudio))]  
 public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 {
     [Header("Movement Settings")]
@@ -70,7 +70,6 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
         _playerMovement = new PlayerMovement(_ncc, _characterAnimation, transform, Runner, jumpForce, maxSpeed, acceleration, braking);
         _playerInteraction = new PlayerInteraction(Object, transform, platformLayer);
         
-        // Khởi tạo hệ thống Combat
         _playerCombat.Initialize(this, _playerAudio);
 
         if (HasInputAuthority)

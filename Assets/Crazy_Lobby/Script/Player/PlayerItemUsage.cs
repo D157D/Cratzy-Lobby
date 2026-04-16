@@ -120,6 +120,20 @@ namespace Crazy_Lobby.Player.Components
                     closestObj = e.Object;
                 }
             }
+            foreach (var e in EnemyPatroll.ActiveLobbyEnemies)
+            {
+                if (e == null || e.Object == null || e.Object.Id == _player.Object.Id) continue;
+
+                var health = e.GetComponent<PlayerHealth>();
+                if (health != null && health.IsDead) continue;
+
+                float distSqr = (_player.transform.position - e.transform.position).sqrMagnitude;
+                if (distSqr < closestDistSqr && distSqr < _targetingRange * _targetingRange)
+                {
+                    closestDistSqr = distSqr;
+                    closestObj = e.Object;
+                }
+            }
 
             return closestObj != null ? closestObj.Id : default;
         }

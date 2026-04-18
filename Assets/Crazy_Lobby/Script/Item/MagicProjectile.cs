@@ -1,77 +1,91 @@
 using Fusion;
 using UnityEngine;
 using Crazy_Lobby.Player;
+using Crazy_Lobby.Player.Components;
+using Crazy_Lobby.Enemy; 
 
 namespace Crazy_Lobby.Item
 {
     [RequireComponent(typeof(NetworkObject))]
     public class MagicProjectile : NetworkBehaviour
     {
-        public float speed = 25f; 
-        public float lifeTime = 3f;
-        public int damage = 1;
+        [Header("Spell Settings")]
+        public float freezeDuration = 3f; 
+        public int damageAmount = 1;      
+        public GameObject iceBlockPrefab; 
+        public float spellLifeTime = 1.0f; 
 
+        [Header("Audio")]
+        public AudioClip castSound;       
+
+        // ID của người/quái vật đã tung phép
         [Networked] public NetworkId OwnerId { get; set; }
-        [Networked] private TickTimer LifeTimer { get; set; }
+        [Networked] private TickTimer DespawnTimer { get; set; }
 
         public override void Spawned()
         {
+            if (castSound != null) 
+                AudioSource.PlayClipAtPoint(castSound, transform.position);
+
+            // Chỉ Server mới thực hiện tính toán logic đóng băng
             if (HasStateAuthority)
             {
-                LifeTimer = TickTimer.CreateFromSeconds(Runner, lifeTime);
-            }
-
-            // Bỏ qua va chạm với người bắn
-            if (OwnerId.IsValid)
-            {
-                var ownerObj = Runner.FindObject(OwnerId);
-                if (ownerObj != null)
-                {
-                    var ownerColliders = ownerObj.GetComponentsInChildren<Collider>();
-                    var myCollider = GetComponent<Collider>();
-
-                    if (myCollider != null)
-                    {
-                        foreach (var col in ownerColliders)
-                        {
-                            Physics.IgnoreCollision(myCollider, col);
-                        }
-                    }
-                }
+                ExecuteGlobalFreeze();
+                DespawnTimer = TickTimer.CreateFromSeconds(Runner, spellLifeTime);
             }
         }
 
         public override void FixedUpdateNetwork()
         {
-            if (HasStateAuthority && LifeTimer.Expired(Runner))
+            if (HasStateAuthority && DespawnTimer.Expired(Runner))
             {
                 Runner.Despawn(Object);
-                return;
             }
-
-            // Di chuyển thẳng về phía trước
-            transform.position += transform.forward * speed * Runner.DeltaTime;
         }
 
-        private void OnTriggerEnter(Collider other)
+        private void ExecuteGlobalFreeze()
         {
-            if (!HasStateAuthority) return;
+            // --- 1. QUÉT NGƯỜI CHƠI ---
+            foreach (var player in PlayerController.ActivePlayers)
+            {
+                // KIỂM TRA CHẶN CHỦ NHÂN:
+                // Nếu ID của nhân vật này TRÙNG với OwnerId của phép thuật -> BỎ QUA
+                if (player == null || player.IsDead || player.Object.Id == OwnerId) continue;
 
-            // Kiểm tra xem có trúng player không
-            var health = other.GetComponentInParent<PlayerHealth>();
-            if (health != null)
-            {
-                var playerObj = health.GetComponent<NetworkObject>();
-                if (playerObj != null && playerObj.Id != OwnerId)
-                {
-                    health.RPC_TakeDamage(damage);
-                    Runner.Despawn(Object);
-                }
+                // Thực thi logic đóng băng lên mục tiêu hợp lệ
+                ApplyFreezeToTarget(player.gameObject, player.transform.position);
             }
-            else if (!other.isTrigger)
+
+            // --- 2. QUÉT QUÁI VẬT ---
+            foreach (var enemy in EnemyAI.ActiveEnemies)
             {
-                // Trúng tường hoặc vật cản
-                Runner.Despawn(Object);
+                // Nếu chính con quái này tung phép -> BỎ QUA
+                if (enemy == null || enemy.IsDead || enemy.Object.Id == OwnerId) continue;
+
+                ApplyFreezeToTarget(enemy.gameObject, enemy.transform.position);
+            }
+        }
+
+        private void ApplyFreezeToTarget(GameObject target, Vector3 position)
+        {
+            // Gây sát thương và Stun (Server side)
+            if (target.TryGetComponent<PlayerHealth>(out var health)) health.RPC_TakeDamage(damageAmount);
+            if (target.TryGetComponent<PlayerCombat>(out var combat)) combat.ApplyStun(freezeDuration);
+            
+            // Nếu là EnemyAI
+            if (target.TryGetComponent<EnemyAI>(out var enemy)) enemy.RPC_TakeDamage(damageAmount);
+
+            // Hiển thị cục băng bằng RPC (Tối ưu: chỉ hiện tại máy khách, không tốn tài nguyên mạng)
+            RPC_ShowIceBlockLocal(position);
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_ShowIceBlockLocal(Vector3 targetPosition)
+        {
+            if (iceBlockPrefab != null)
+            {
+                GameObject iceEffect = Instantiate(iceBlockPrefab, targetPosition, Quaternion.identity);
+                Destroy(iceEffect, freezeDuration); // Tự xóa sau khi hết đóng băng
             }
         }
     }

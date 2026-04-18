@@ -2,21 +2,24 @@ using System.Linq;
 using Fusion;
 using UnityEngine;
 using Crazy_Lobby.Enemy;
+
 public class SpawnPlayer : NetworkBehaviour, IPlayerJoined
 {
     public NetworkPrefabRef _player;
     public Transform[] spawnPoints;
-    public Transform _enemySpawn;
+    
+    [Header("Enemy Spawning")]
+    // 👉 Đổi thành mảng để bạn có thể gắn bao nhiêu vị trí tùy thích
+    public Transform[] enemySpawnPoints; 
     public NetworkPrefabRef _enemy;
+    
     private bool _hasFilledBots = false;
-
-    private const int MAX_PLAYERS = 10;
 
     public override void Spawned()
     {
         if (!Runner.IsServer) return;
 
-        // Spawn existing players
+        // Sinh ra người chơi hiện tại
         foreach (var player in Runner.ActivePlayers)
         {
             if (Runner.GetPlayerObject(player) == null)
@@ -25,51 +28,53 @@ public class SpawnPlayer : NetworkBehaviour, IPlayerJoined
             }
         }
 
-        // Fill the rest with bots
+        // Sinh quái (Bot) tại các điểm đã thiết lập
         if (!_hasFilledBots)
         {
-            FillWithBots();
+            SpawnAllBots();
             _hasFilledBots = true;
         }
     }
 
-    private void FillWithBots()
+    private void SpawnAllBots()
     {
-        int playerCount = Runner.ActivePlayers.Count();
-        int botsToSpawn = MAX_PLAYERS - playerCount;
-
-        Debug.Log($"[SpawnPlayer] Player count: {playerCount}. Spawning {botsToSpawn} bots to fill to {MAX_PLAYERS}.");
-
-        for (int i = 0; i < botsToSpawn; i++)
+        // Kiểm tra xem mảng có điểm spawn nào không
+        if (enemySpawnPoints == null || enemySpawnPoints.Length == 0)
         {
-            SpawnBot();
+            Debug.LogWarning("[SpawnPlayer] Mảng enemySpawnPoints đang trống! Không có quái nào được sinh ra.");
+            return;
+        }
+
+        Debug.Log($"[SpawnPlayer] Sẽ sinh ra {enemySpawnPoints.Length} quái vật tại các điểm đã đánh dấu.");
+
+        // Duyệt qua từng điểm trong mảng
+        foreach (var spawnPoint in enemySpawnPoints)
+        {
+            if (spawnPoint != null)
+            {
+                // Gọi hàm sinh quái và truyền vị trí + hướng xoay của điểm đó vào
+                SpawnBot(spawnPoint.position, spawnPoint.rotation);
+            }
         }
     }
 
-    private void SpawnBot()
+    private void SpawnBot(Vector3 spawnPosition, Quaternion spawnRotation)
     {
-        Vector3 spawnPosition = Vector3.zero;
-        if (_enemySpawn != null)
-        {
-            spawnPosition = _enemySpawn.position + new Vector3(Random.Range(-5f, 5f), 0, Random.Range(-5f, 5f));
-        }
-        else
-        {
-            Debug.LogWarning("[SpawnPlayer] _enemySpawn is null. Spawning bot at Vector3.zero.");
-        }
-        
+        // Random ngoại hình cho bot
         CharacterType randomChar = (CharacterType)Random.Range(0, System.Enum.GetValues(typeof(CharacterType)).Length);
 
-        if (_enemy.IsValid) // Check if NetworkPrefabRef is valid (not null/empty)
+        if (_enemy.IsValid) 
         {
-            Runner.Spawn(_enemy, spawnPosition, Quaternion.identity, onBeforeSpawned: (runner, obj) => {
+            Runner.Spawn(_enemy, spawnPosition, spawnRotation, onBeforeSpawned: (runner, obj) => {
                 if (obj.TryGetComponent<EnemyCharacterHandler>(out var charHandler))
                 {
                     charHandler.CurrentCharacter = randomChar;
                 }
             });
-        } else {
-            Debug.LogWarning("[SpawnPlayer] _enemy prefab is not assigned. Cannot spawn bot.");
+        } 
+        else 
+        {
+            Debug.LogWarning("[SpawnPlayer] _enemy prefab chưa được gán. Không thể sinh quái.");
         }
     }
 

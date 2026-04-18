@@ -6,9 +6,9 @@ using System.Collections.Generic;
 using Crazy_Lobby.Player;
 using Crazy_Lobby.Item; 
 
-public class EnemyPatroll : NetworkBehaviour
+public class EnemyPatrol : NetworkBehaviour
 {
-    public static readonly List<EnemyPatroll> ActiveLobbyEnemies = new List<EnemyPatroll>();
+    public static readonly List<EnemyPatrol> ActiveLobbyEnemies = new List<EnemyPatrol>();
 
     [Header("Patrol Settings")]
     public string waypointTag = "Waypoint";

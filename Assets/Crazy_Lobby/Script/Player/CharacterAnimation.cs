@@ -60,8 +60,8 @@ namespace Crazy_Lobby.Player
 
         public void TriggerAttack()
         {
-            if (_animator == null) return;
-            _animator.SetTrigger("attack");
+            // if (_animator == null) return;
+            // _animator.SetTrigger("attack");
         }
     }
 }

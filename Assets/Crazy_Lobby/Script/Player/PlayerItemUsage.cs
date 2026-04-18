@@ -61,9 +61,7 @@ namespace Crazy_Lobby.Player.Components
 
             if (ItemManager.Instance != null && ItemManager.Instance.Magic.IsValid)
             {
-                Vector3 spawnPos = _player.transform.position 
-                    + _player.transform.forward * 1.5f 
-                    + Vector3.up * 1.2f;
+                Vector3 spawnPos = _player.transform.position + Vector3.down * 10f;
 
                 Quaternion spawnRot = _player.transform.rotation;
 
@@ -106,7 +104,7 @@ namespace Crazy_Lobby.Player.Components
             }
 
             // Enemy (FIXED)
-            foreach (var e in EnemyPatrol.ActiveEnemies)
+            foreach (var e in EnemyAI.ActiveEnemies)
             {
                 if (e == null || e.Object == null || e.Object.Id == _player.Object.Id) continue;
 
@@ -120,7 +118,7 @@ namespace Crazy_Lobby.Player.Components
                     closestObj = e.Object;
                 }
             }
-            foreach (var e in EnemyPatroll.ActiveLobbyEnemies)
+            foreach (var e in EnemyPatrol.ActiveLobbyEnemies)
             {
                 if (e == null || e.Object == null || e.Object.Id == _player.Object.Id) continue;
 

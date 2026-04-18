@@ -2,6 +2,8 @@ using Fusion;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement; // 👉 Thêm thư viện quản lý Scene
+using System.IO; // 👉 Thêm thư viện để tách lấy tên Scene
 
 public class BootstrapUIManager : MonoBehaviour
 {
@@ -24,7 +26,7 @@ public class BootstrapUIManager : MonoBehaviour
     [SerializeField] private GameObject loadingPanel; 
     [SerializeField] private TextMeshProUGUI loadingTimeText;
 
-    private string gameSceneName = "Map2";
+    // Đã xóa biến gameSceneName cố định ở đây
     private Bootstrap _bootstrap;
 
     void Awake() 
@@ -79,10 +81,31 @@ public class BootstrapUIManager : MonoBehaviour
         }
     }
 
+    // 👉 HÀM ĐƯỢC NÂNG CẤP: TỰ ĐỘNG TÌM SCENE TIẾP THEO
     private void OnPlayClicked()
     {
         if (_bootstrap == null) return;
-        _bootstrap.OnPlayClicked(gameSceneName);
+
+        // Lấy vị trí (index) của Scene hiện tại (Ví dụ: Lobby đang là 0)
+        int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
+        int nextSceneIndex = currentSceneIndex + 1; // Scene tiếp theo sẽ là 1
+
+        // Kiểm tra xem trong Build Settings có Scene tiếp theo không
+        if (nextSceneIndex < SceneManager.sceneCountInBuildSettings)
+        {
+            // Lấy đường dẫn của Scene tiếp theo (vd: "Assets/Scenes/Map1.unity")
+            string nextScenePath = SceneUtility.GetScenePathByBuildIndex(nextSceneIndex);
+            
+            // Tách lấy đúng cái tên (vd: "Map1")
+            string nextSceneName = Path.GetFileNameWithoutExtension(nextScenePath);
+            
+            Debug.Log($"[BootstrapUIManager] Chuyển map tự động: Chuyển tới Scene -> {nextSceneName}");
+            _bootstrap.OnPlayClicked(nextSceneName);
+        }
+        else
+        {
+            Debug.LogError("[BootstrapUIManager] LỖI: Không tìm thấy Scene tiếp theo! Bạn đã thêm Scene Map chơi vào File -> Build Settings chưa?");
+        }
     }
 
     private void OnPrivateRoomToggleChanged(bool isPrivate)

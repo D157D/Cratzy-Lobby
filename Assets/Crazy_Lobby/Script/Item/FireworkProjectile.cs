@@ -3,6 +3,7 @@ using UnityEngine;
 using Crazy_Lobby.Player;
 using UnityEngine.SceneManagement;
 using Crazy_Lobby.Player.Components;
+using Crazy_Lobby.Enemy; // 👉 Đã thêm thư viện Enemy để nhận diện EnemyAI
 
 namespace Crazy_Lobby.Item
 {
@@ -154,7 +155,8 @@ namespace Crazy_Lobby.Item
                     }
                 }
 
-                var enemy = other.GetComponentInParent<EnemyPatrol>();
+                // 👉 Đã đổi từ EnemyPatrol sang EnemyAI
+                var enemy = other.GetComponentInParent<EnemyAI>();
                 if (enemy != null && enemy.TryGetComponent(out NetworkObject enemyObj))
                 {
                     if (enemyObj.Id != OwnerId && (!TargetId.IsValid || enemyObj.Id == TargetId))
@@ -200,10 +202,12 @@ namespace Crazy_Lobby.Item
                 return;
             }
 
-            var enemy = target.GetComponentInParent<EnemyPatrol>();
+            // 👉 Đã đổi từ EnemyPatrol sang EnemyAI
+            var enemy = target.GetComponentInParent<EnemyAI>();
             if (enemy != null)
             {
                 Debug.Log($"[Firework] Gây sát thương cho Enemy: {target.Id}");
+                // Hàm RPC_TakeDamage bên EnemyAI đã có sẵn lệnh gọi Animator.SetTrigger("die") rồi
                 enemy.RPC_TakeDamage(1);
                 return;
             }

@@ -9797,7 +9797,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &282600202
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14355,10 +14355,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00c30bdfe2696f34a87d187069e0a281, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnValue: 0
-  player: {fileID: 6858984339316697385}
   respawnPoint: {fileID: 1914834032}
-  distance: 20
 --- !u!65 &466489879
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -22428,10 +22425,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00c30bdfe2696f34a87d187069e0a281, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnValue: 0
-  player: {fileID: 6858984339316697385}
   respawnPoint: {fileID: 358651700}
-  distance: 20
 --- !u!82 &550724765
 AudioSource:
   m_ObjectHideFlags: 0
@@ -35393,10 +35387,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00c30bdfe2696f34a87d187069e0a281, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnValue: 0
-  player: {fileID: 6858984339316697385}
   respawnPoint: {fileID: 1851076796}
-  distance: 20
 --- !u!82 &679441062
 AudioSource:
   m_ObjectHideFlags: 0
@@ -37485,10 +37476,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00c30bdfe2696f34a87d187069e0a281, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnValue: 0
-  player: {fileID: 6858984339316697385}
   respawnPoint: {fileID: 1381787403}
-  distance: 20
 --- !u!65 &756635155
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -41648,10 +41636,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00c30bdfe2696f34a87d187069e0a281, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnValue: 0
-  player: {fileID: 6858984339316697385}
   respawnPoint: {fileID: 1914834032}
-  distance: 20
 --- !u!65 &912954520
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -61529,10 +61514,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00c30bdfe2696f34a87d187069e0a281, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnValue: 0
-  player: {fileID: 6858984339316697385}
   respawnPoint: {fileID: 358651700}
-  distance: 20
 --- !u!65 &1440007555
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -72701,7 +72683,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4842218129513925996, guid: aa9ceff53714a0a4c8aee65e5c9288b1, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 45.55
+      value: 44.58
       objectReference: {fileID: 0}
     - target: {fileID: 4842218129513925996, guid: aa9ceff53714a0a4c8aee65e5c9288b1, type: 3}
       propertyPath: m_LocalPosition.z
@@ -87636,10 +87618,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00c30bdfe2696f34a87d187069e0a281, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnValue: 0
-  player: {fileID: 6858984339316697385}
   respawnPoint: {fileID: 241012469}
-  distance: 20
 --- !u!82 &2023065750
 AudioSource:
   m_ObjectHideFlags: 0
@@ -91421,10 +91400,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00c30bdfe2696f34a87d187069e0a281, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnValue: 0
-  player: {fileID: 6858984339316697385}
   respawnPoint: {fileID: 1914834032}
-  distance: 20
 --- !u!65 &2121726133
 BoxCollider:
   m_ObjectHideFlags: 0

@@ -151,7 +151,7 @@ MonoBehaviour:
   patrolRadius: 20
   patrolTimeout: 10
   visionRange: 10
-  moveSpeed: 3
+  moveSpeed: 10
   rotationSpeed: 15
   acceleration: 100
   braking: 100

@@ -156,14 +156,15 @@ public class CountdownController : NetworkBehaviour
 
         if (resultPanel != null) resultPanel.SetActive(false);
 
-        if (result == GameResult.Fail || result == GameResult.Complete)
+        if (result == GameResult.Complete)
         {
             var camera = FindObjectOfType<CameraP>();
             if (camera != null) camera.OnPlayerDied();
         }
-        else if (result == GameResult.Victory)
+        else if (result == GameResult.Victory || result == GameResult.Fail)
         {
-            // TẢI SANG SCENE TIẾP THEO nếu là server
+            // TẢI SANG SCENE TIẾP THEO nếu là server 
+            // (Áp dụng cho trường hợp Thắng hoặc Thua do hết thời gian)
             if (Runner.IsServer)
             {
                 int nextSceneIndex = UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex + 1;
@@ -174,6 +175,13 @@ public class CountdownController : NetworkBehaviour
 
     private void UpdateCountdownUI(int count)
     {
+        // Chỉ hiển thị UI đếm ngược khi số nằm trong khoảng từ 3 đến 0
+        if (count > 3 || count < 0)
+        {
+            countdownImage.gameObject.SetActive(false);
+            return;
+        }
+
         countdownImage.gameObject.SetActive(true);
 
         switch (count)

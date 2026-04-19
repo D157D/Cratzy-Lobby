@@ -382,6 +382,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82f5bb691887d5f47b96b3c3f194b684, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  boostSpeedMultiplier: 2
+  _IsSpeedBoosted:
+    _value: 0
   platformLayer:
     serializedVersion: 2
     m_Bits: 64
@@ -445,7 +448,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _IsDead:
     _value: 0
-  _initialMaxHealth: 500
+  _initialMaxHealth: 3
 --- !u!114 &-7776278523305512593
 MonoBehaviour:
   m_ObjectHideFlags: 0

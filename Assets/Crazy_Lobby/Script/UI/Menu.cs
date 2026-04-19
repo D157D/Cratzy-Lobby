@@ -38,6 +38,7 @@ namespace Crazy_Lobby.UI
         private bool isTransitioning = false; 
 
         private static bool _hasStartedSession = false;
+        public static bool ShouldAutoStart = false;
 
         private void Start()
         {
@@ -53,6 +54,11 @@ namespace Crazy_Lobby.UI
             {
                 if (_StartButton != null) _StartButton.gameObject.SetActive(false);
                 ShowRoomPanel(); 
+            }
+            else if (ShouldAutoStart)
+            {
+                ShouldAutoStart = false;
+                StartGame();
             }
         }
 

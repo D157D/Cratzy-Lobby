@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using Fusion;
+using Crazy_Lobby.Enemy; // 👉 Thêm dòng này để Camera nhận diện được EnemyAI
 
 public class CameraP : MonoBehaviour
 {
@@ -21,7 +22,7 @@ public class CameraP : MonoBehaviour
     private float _yaw;
     private float _pitch;
     private bool _isReversedView = false;
-    public bool IsTargetLocked = false; // Cờ chặn xoay camera
+    public bool IsTargetLocked = false; 
 
     public float CurrentYaw => _yaw;
 
@@ -35,10 +36,9 @@ public class CameraP : MonoBehaviour
     {
         if (TargetCamera == null)
         {
-            TargetCamera = GetComponent<UnityEngine.Camera>();
-            if (TargetCamera == null) TargetCamera = UnityEngine.Camera.main;
+            TargetCamera = GetComponent<Camera>();
+            if (TargetCamera == null) TargetCamera = Camera.main;
         }
-
     }
 
     private void LateUpdate()
@@ -59,17 +59,26 @@ public class CameraP : MonoBehaviour
 
         if (_isSpectating)
         {
+            // Bấm chuột trái để chuyển góc nhìn
             if (Input.GetMouseButtonDown(0))
             {
                 SwitchToNextSpectatorTarget();
             }
             else if (_currentTarget != null)
             {
+                // 👉 Tự động nhảy sang mục tiêu khác nếu người mình đang xem BỊ CHẾT hoặc VỪA VỀ ĐÍCH
                 var targetPC = _currentTarget.GetComponent<PlayerController>();
-                // Tự động nhảy sang mục tiêu khác nếu người mình đang xem cũng bị chết
-                if (targetPC != null && targetPC.IsDead)
+                if (targetPC != null && (targetPC.IsDead || targetPC.HasFinished))
                 {
                     SwitchToNextSpectatorTarget();
+                }
+                else
+                {
+                    var targetEnemy = _currentTarget.GetComponent<EnemyAI>();
+                    if (targetEnemy != null && (targetEnemy.IsDead || targetEnemy.HasFinished))
+                    {
+                        SwitchToNextSpectatorTarget();
+                    }
                 }
             }
         }
@@ -81,7 +90,6 @@ public class CameraP : MonoBehaviour
                 _isReversedView = !_isReversedView;
             }
 
-            // Chỉ nhận input xoay chuột khi không bị khóa mục tiêu
             if (!IsTargetLocked)
             {
                 float mouseX = Input.GetAxis("Mouse X") * Sensitivity;
@@ -110,10 +118,7 @@ public class CameraP : MonoBehaviour
                 TargetCamera.transform.position = position;
             }
         }
-
-        
     }
-
 
     public void SetLocalPlayer(Transform playerTransform)
     {
@@ -134,6 +139,16 @@ public class CameraP : MonoBehaviour
         RefreshSpectatorList();
         SwitchToNextSpectatorTarget();
     }
+
+    // 👉 HÀM MỚI: ĐƯỢC GỌI KHI NHÂN VẬT VỀ ĐÍCH
+    public void OnPlayerFinished()
+    {
+        _isSpectating = true;
+        RefreshSpectatorList();
+        SwitchToNextSpectatorTarget();
+    }
+
+    
     public void OnPlayerRespawned()
     {
         StopSpectating();
@@ -152,12 +167,21 @@ public class CameraP : MonoBehaviour
     {
         _spectatablePlayers.Clear();
         
-        // Tận dụng ActivePlayers để tối ưu, lọc ra người chơi khác bản thân đang còn sống
+        // 1. Quét tìm những Người chơi khác (chưa chết và chưa về đích)
         foreach (var p in PlayerController.ActivePlayers)
         {
-            if (p != null && p.transform != _localPlayer && !p.IsDead)
+            if (p != null && p.transform != _localPlayer && !p.IsDead && !p.HasFinished)
             {
                 _spectatablePlayers.Add(p.transform);
+            }
+        }
+
+        // 2. Quét tìm những Quái vật (chưa chết và chưa về đích)
+        foreach (var e in EnemyAI.ActiveEnemies)
+        {
+            if (e != null && !e.IsDead && !e.HasFinished)
+            {
+                _spectatablePlayers.Add(e.transform);
             }
         }
     }
@@ -167,7 +191,8 @@ public class CameraP : MonoBehaviour
         if (_spectatablePlayers.Count == 0)
         {
             RefreshSpectatorList();
-            if (_spectatablePlayers.Count == 0) return;
+            // Nếu quét xong vẫn không có ai (tất cả đều đã chết hoặc về đích), thì giữ nguyên camera
+            if (_spectatablePlayers.Count == 0) return; 
         }
 
         _spectatorIndex = (_spectatorIndex + 1) % _spectatablePlayers.Count;

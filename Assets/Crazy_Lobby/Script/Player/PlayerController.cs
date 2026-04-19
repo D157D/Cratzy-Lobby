@@ -51,6 +51,7 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
     public bool IsInLobby => SceneManager.GetActiveScene().name == "Login_Crazy"; 
     public NetworkId CurrentTargetId { get; internal set; }
     public bool IsDead { get; internal set; }
+    [Networked] public bool HasFinished { get; set; }
     public static readonly List<PlayerController> ActivePlayers = new List<PlayerController>();
 
     private void Awake()
@@ -111,10 +112,36 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
     public void OnUseItem(InputValue value) { if (value.isPressed) _useItemPressed = true; }
     public void OnMagic(InputValue value) { if (value.isPressed) _magicPressed = true; }
 
-    
+    public void SetFinished()
+    {
+        if (Object.HasStateAuthority)
+        {
+            HasFinished = true;
+            RPC_NotifyFinished();
+        }
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
+    private void RPC_NotifyFinished()
+    {
+        if (CountdownController.Instance != null)
+        {
+            CountdownController.Instance.TriggerLocalVictorySequence();
+        }
+    }
     public override void FixedUpdateNetwork()
     {
         if (IsDead) return;
+        
+        if(!IsInLobby)
+        {
+            if(!CountdownController.IsGameStarted || HasFinished)
+            {
+                _ncc.Move(Vector3.zero);
+                return;
+            }
+        }
+
 
         if (TryGetComponent<PlayerCombat>(out var combat) && combat.IsStunned)
         {

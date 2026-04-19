@@ -12,7 +12,8 @@ GameObject:
   - component: {fileID: 2710405969038700364}
   - component: {fileID: 796359721105767445}
   - component: {fileID: 4265482244429259103}
-  - component: {fileID: 4982028400500745864}
+  - component: {fileID: 7975546353274842156}
+  - component: {fileID: 5807610304480336442}
   m_Layer: 0
   m_Name: Platform Circle Rotated_6
   m_TagString: Untagged
@@ -110,7 +111,7 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 3237064147268127946, guid: e5909e6c07df7474dbbae1a47853e8bb, type: 3}
---- !u!114 &4982028400500745864
+--- !u!114 &7975546353274842156
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -119,11 +120,31 @@ MonoBehaviour:
   m_GameObject: {fileID: 3640444124841339801}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Script: {fileID: 11500000, guid: 38e76e93754f7a04bbe568da787bf5a9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _stateAuthorityChangeErrorCorrectionDelta: 0
-  SyncScale: 0
-  SyncParent: 0
-  _autoAOIOverride: 1
-  DisableSharedModeInterpolation: 0
+  itemPrefabs:
+  - RawGuidValue: fc0a2033d8e1c874ebac2fbf81687348
+  - RawGuidValue: 02a25b05ea0f8be44a1144cda9ec4814
+  maxSpawnCount: 2
+  isInfinite: 0
+  spawnInterval: 10
+--- !u!114 &5807610304480336442
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3640444124841339801}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SortKey: 1895681428
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 7975546353274842156}
+  ForceRemoteRenderTimeframe: 0

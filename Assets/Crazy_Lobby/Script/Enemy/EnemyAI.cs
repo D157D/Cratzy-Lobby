@@ -56,6 +56,8 @@ public class EnemyAI : NetworkBehaviour, IStunnable
     [Networked] private TickTimer shootCooldownTimer { get; set; } 
     [Networked] public NetworkBool IsDead { get; set; }
     [Networked] private TickTimer StunTimer { get; set; }
+    [Networked] public bool HasFinished { get; set; }
+    public bool IsInLobby => SceneManager.GetActiveScene().name == "Login_Crazy"; 
 
     public override void Spawned()
     {
@@ -75,7 +77,7 @@ public class EnemyAI : NetworkBehaviour, IStunnable
         agent.updateRotation = false; 
         agent.updatePosition = false; 
 
-        _ncc.maxSpeed = moveSpeed;
+        _ncc.maxSpeed = IsInLobby ? moveSpeed : 10;
         _ncc.acceleration = acceleration;
         _ncc.braking = braking;
 
@@ -123,10 +125,26 @@ public class EnemyAI : NetworkBehaviour, IStunnable
         if (_characterHandler != null) _characterHandler.OnModelChanged -= HandleModelChanged;
         ActiveEnemies.Remove(this);
     }
+    public void SetFinished()
+    {
+        if (Object.HasStateAuthority)
+        {
+            HasFinished = true;
+        }
+    }
 
     public override void FixedUpdateNetwork()
     {
         if (!HasStateAuthority) return;
+
+        if(!IsInLobby)
+        {
+            if(!CountdownController.IsGameStarted || HasFinished )
+            {
+                if(_ncc != null) _ncc.Move(Vector3.zero);
+                return;
+            }
+        }
 
         if (IsDead || !StunTimer.ExpiredOrNotRunning(Runner))
         {

@@ -29,7 +29,7 @@ public class CountdownController : NetworkBehaviour
     public GameObject resultPanel;
     public Image resultImage;         
     public Sprite victorySprite;     
-    public Sprite loseSprite;        
+    public Sprite completeSprite;        
     public Sprite failSprite;        
 
     [Header("Âm thanh")]
@@ -125,13 +125,13 @@ public class CountdownController : NetworkBehaviour
         if (!isLocalFinished)
         {
             // Nếu chưa về đích:
-            // - Nếu slots full -> LOSE
+            // - Nếu slots full -> COMPLETE (Hoặc Eliminated)
             // - Nếu hết giờ -> FAIL
-            StartCoroutine(ShowResultRoutine(slotsFilled ? GameResult.Lose : GameResult.Fail));
+            StartCoroutine(ShowResultRoutine(slotsFilled ? GameResult.Complete : GameResult.Fail));
         }
     }
 
-    private enum GameResult { Victory, Lose, Fail }
+    private enum GameResult { Victory, Complete, Fail }
 
     private IEnumerator ShowResultRoutine(GameResult result)
     {
@@ -142,8 +142,8 @@ public class CountdownController : NetworkBehaviour
                 case GameResult.Victory:
                     resultImage.sprite = victorySprite;
                     break;
-                case GameResult.Lose:
-                    resultImage.sprite = loseSprite;
+                case GameResult.Complete:
+                    resultImage.sprite = completeSprite;
                     break;
                 case GameResult.Fail:
                     resultImage.sprite = failSprite;
@@ -156,7 +156,7 @@ public class CountdownController : NetworkBehaviour
 
         if (resultPanel != null) resultPanel.SetActive(false);
 
-        if (result == GameResult.Fail || result == GameResult.Lose)
+        if (result == GameResult.Fail || result == GameResult.Complete)
         {
             var camera = FindObjectOfType<CameraP>();
             if (camera != null) camera.OnPlayerDied();
@@ -240,7 +240,7 @@ public class CountdownController : NetworkBehaviour
             {
                 Debug.Log("Tất cả chỗ đã được lấp đầy! Hết Game!");
                 IsGameStarted = false; 
-                RPC_OnGameEnd(true); // Kết thúc do hết chỗ (Lose cho những người còn lại)
+                RPC_OnGameEnd(true); // Kết thúc do hết chỗ
             }
         }
     }

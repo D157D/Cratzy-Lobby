@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using Crazy_Lobby.Enemy;
 using UnityEngine.SceneManagement; 
 
-public class EnemyAI : NetworkBehaviour
+public class EnemyAI : NetworkBehaviour, IStunnable
 {
     public enum PatrolMode
     {
@@ -528,5 +528,17 @@ public class EnemyAI : NetworkBehaviour
 
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(transform.position, patrolRadius);
+    }
+
+    public void ApplyStun(float duration)
+    {
+        if (Object.HasStateAuthority)
+        {
+            // Thiết lập StunTimer bằng với thời gian của quả bom
+            StunTimer = TickTimer.CreateFromSeconds(Runner, duration);
+            
+            // Bạn có thể gọi thêm Animation bị choáng ở đây cho đẹp
+            RPC_PlayHitAnim(); 
+        }
     }
 }

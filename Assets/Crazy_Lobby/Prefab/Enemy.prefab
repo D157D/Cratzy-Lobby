@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: -6711145401429750024}
   - component: {fileID: -3361772075137135526}
   - component: {fileID: 7534112056461736902}
+  - component: {fileID: 4958135172806655733}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Enemy
@@ -110,6 +111,7 @@ MonoBehaviour:
   - {fileID: -6711145401429750024}
   - {fileID: -3361772075137135526}
   - {fileID: 7534112056461736902}
+  - {fileID: 4958135172806655733}
   ForceRemoteRenderTimeframe: 0
 --- !u!195 &-1298496332321414653
 NavMeshAgent:
@@ -192,3 +194,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _CurrentCharacter: 0
+--- !u!114 &4958135172806655733
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3534587539486237955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b68f28b3e3f24706abb694ac21ab3aa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

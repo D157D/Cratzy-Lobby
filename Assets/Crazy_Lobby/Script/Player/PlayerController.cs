@@ -22,6 +22,7 @@ public struct NetworkInputData : INetworkInput
 [RequireComponent(typeof(NetworkObject))]
 [RequireComponent(typeof(PlayerCombat))] 
 [RequireComponent(typeof(PlayerAudio))]  
+[RequireComponent(typeof(StunStatus))]
 public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 {
     [Header("Movement Settings")]
@@ -45,6 +46,7 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
     private bool _jumpPressed;
     private bool _useItemPressed;
     private bool _magicPressed;
+    private StunStatus _stunStatus;
 
     public bool IsInLobby => SceneManager.GetActiveScene().name == "Login_Crazy"; 
     public NetworkId CurrentTargetId { get; internal set; }
@@ -57,6 +59,7 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
         _playerHealth = GetComponent<PlayerHealth>();
         _playerCombat = GetComponent<PlayerCombat>();
         _playerAudio = GetComponent<PlayerAudio>();
+        _stunStatus = GetComponent<StunStatus>();
         _characterAnimation = new CharacterAnimation(GetComponentInChildren<Animator>());
     }
   
@@ -108,14 +111,14 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
     public void OnUseItem(InputValue value) { if (value.isPressed) _useItemPressed = true; }
     public void OnMagic(InputValue value) { if (value.isPressed) _magicPressed = true; }
 
-
+    
     public override void FixedUpdateNetwork()
     {
         if (IsDead) return;
 
         if (GetInput(out NetworkInputData data))
         {
-            if (_playerCombat != null && _playerCombat.IsStunned)
+            if (_stunStatus != null && _stunStatus.IsStunned)
             {
                 data.Movement = Vector2.zero;
                 data.Jump = false;

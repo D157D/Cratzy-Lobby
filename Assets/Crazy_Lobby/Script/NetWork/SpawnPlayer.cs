@@ -2,6 +2,7 @@ using System.Linq;
 using Fusion;
 using UnityEngine;
 using Crazy_Lobby.Enemy;
+using UnityEngine.SceneManagement;
 
 public class SpawnPlayer : NetworkBehaviour, IPlayerJoined
 {
@@ -93,7 +94,14 @@ public class SpawnPlayer : NetworkBehaviour, IPlayerJoined
         int index = player.RawEncoded % spawnPoints.Length;
         Vector3 spawnPosition = spawnPoints[index].position;
 
-        var obj = Runner.Spawn(_player, spawnPosition, Quaternion.identity, player);
+        Quaternion spawnRotation = spawnPoints[index].rotation;
+        
+        if (SceneManager.GetActiveScene().name == "Ending")
+        {
+            spawnRotation *= Quaternion.Euler(0, 180, 0); // Xoay ngược lại 180 độ quanh trục Y
+        }
+
+        var obj = Runner.Spawn(_player, spawnPosition, spawnRotation, player);
         Runner.SetPlayerObject(player, obj);
     }
 }

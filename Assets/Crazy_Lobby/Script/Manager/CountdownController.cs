@@ -29,7 +29,6 @@ public class CountdownController : NetworkBehaviour
     public GameObject resultPanel;
     public Image resultImage;         
     public Sprite victorySprite;     
-    public Sprite completeSprite;        
     public Sprite failSprite;        
 
     [Header("Âm thanh")]
@@ -100,7 +99,7 @@ public class CountdownController : NetworkBehaviour
                     Debug.Log("HẾT GIỜ! Game Over!");
                     IsGameStarted = false; // Khóa di chuyển toàn map
                     
-                    RPC_OnGameEnd(false); // Kết thúc do hết giờ (Fail)
+                    RPC_OnGameEnd(); // Kết thúc game
                 }
             }
 
@@ -110,7 +109,7 @@ public class CountdownController : NetworkBehaviour
     }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    private void RPC_OnGameEnd(bool slotsFilled)
+    private void RPC_OnGameEnd()
     {
         bool isLocalFinished = false;
         foreach (var p in PlayerController.ActivePlayers)
@@ -124,14 +123,12 @@ public class CountdownController : NetworkBehaviour
 
         if (!isLocalFinished)
         {
-            // Nếu chưa về đích:
-            // - Nếu slots full -> COMPLETE (Hoặc Eliminated)
-            // - Nếu hết giờ -> FAIL
-            StartCoroutine(ShowResultRoutine(slotsFilled ? GameResult.Complete : GameResult.Fail));
+            // Nếu chưa về đích (Bất kể do hết giờ hay hết slot) -> Đều hiển thị là FAIL
+            StartCoroutine(ShowResultRoutine(GameResult.Fail));
         }
     }
 
-    private enum GameResult { Victory, Complete, Fail }
+    private enum GameResult { Victory, Fail }
 
     private IEnumerator ShowResultRoutine(GameResult result)
     {
@@ -141,9 +138,6 @@ public class CountdownController : NetworkBehaviour
             {
                 case GameResult.Victory:
                     resultImage.sprite = victorySprite;
-                    break;
-                case GameResult.Complete:
-                    resultImage.sprite = completeSprite;
                     break;
                 case GameResult.Fail:
                     resultImage.sprite = failSprite;
@@ -156,14 +150,10 @@ public class CountdownController : NetworkBehaviour
 
         if (resultPanel != null) resultPanel.SetActive(false);
 
-        if (result == GameResult.Fail || result == GameResult.Complete)
+        if (result == GameResult.Victory || result == GameResult.Fail)
         {
-            var camera = FindObjectOfType<CameraP>();
-            if (camera != null) camera.OnPlayerDied();
-        }
-        else if (result == GameResult.Victory)
-        {
-            // TẢI SANG SCENE TIẾP THEO nếu là server
+            // TẢI SANG SCENE TIẾP THEO nếu là server 
+            // (Áp dụng cho trường hợp Thắng hoặc Thua do hết thời gian)
             if (Runner.IsServer)
             {
                 int nextSceneIndex = UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex + 1;
@@ -174,6 +164,13 @@ public class CountdownController : NetworkBehaviour
 
     private void UpdateCountdownUI(int count)
     {
+        // Chỉ hiển thị UI đếm ngược khi số nằm trong khoảng từ 3 đến 0
+        if (count > 3 || count < 0)
+        {
+            countdownImage.gameObject.SetActive(false);
+            return;
+        }
+
         countdownImage.gameObject.SetActive(true);
 
         switch (count)
@@ -240,7 +237,7 @@ public class CountdownController : NetworkBehaviour
             {
                 Debug.Log("Tất cả chỗ đã được lấp đầy! Hết Game!");
                 IsGameStarted = false; 
-                RPC_OnGameEnd(true); // Kết thúc do hết chỗ
+                RPC_OnGameEnd(); // Kết thúc do hết chỗ
             }
         }
     }

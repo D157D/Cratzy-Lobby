@@ -29,7 +29,7 @@ namespace Crazy_Lobby.Player.Components
 
         public void ApplyStun(float duration)
         {
-            if(HasInputAuthority)
+            if(HasStateAuthority)
             {
                 StunTimer = TickTimer.CreateFromSeconds(Runner, duration);
             }

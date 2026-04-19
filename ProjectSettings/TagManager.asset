@@ -9,6 +9,8 @@ TagManager:
   - Wall
   - Waypoint
   - Waypointt
+  - Enemy
+  - MagicPickup
   layers:
   - Default
   - TransparentFX

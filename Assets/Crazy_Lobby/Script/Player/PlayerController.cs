@@ -31,6 +31,12 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
     private float acceleration = 100f; 
     private float braking = 100f; 
 
+    [Header("Boost Settings")]
+    public float boostSpeedMultiplier = 2f; // Tốc độ nhân lên khi ăn vật phẩm
+    private float _originalMaxSpeed;
+    [Networked] public TickTimer SpeedBoostTimer { get; set; }
+    [Networked] public NetworkBool IsSpeedBoosted { get; set; }
+
     [Header("Interaction Settings")]
     public LayerMask platformLayer; 
 
@@ -67,6 +73,9 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
     public override void Spawned()
     {
         ActivePlayers.Add(this);
+
+        // Lưu lại tốc độ gốc để reset sau khi hết thời gian boost
+        _originalMaxSpeed = maxSpeed;
 
         if (_playerHealth != null) _playerHealth.OnDeath += HandleDeath;
         HandleInitialDeathState();
@@ -129,6 +138,7 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
             CountdownController.Instance.TriggerLocalVictorySequence();
         }
     }
+
     public override void FixedUpdateNetwork()
     {
         if (IsDead) return;
@@ -142,6 +152,21 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
             }
         }
 
+        // --- XỬ LÝ BOOST TỐC ĐỘ BẰNG TICKTIMER CỦA FUSION ---
+        if (IsSpeedBoosted)
+        {
+            if (SpeedBoostTimer.Expired(Runner))
+            {
+                IsSpeedBoosted = false;
+                maxSpeed = _originalMaxSpeed;
+                
+                if (_playerMovement != null) 
+                {
+                    _playerMovement.SetMaxSpeed(maxSpeed);
+                }
+            }
+        }
+        // ---------------------------------------------------
 
         if (TryGetComponent<PlayerCombat>(out var combat) && combat.IsStunned)
         {
@@ -155,6 +180,7 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 
         if (GetInput(out NetworkInputData data))
         {
+           
             if (_stunStatus != null && _stunStatus.IsStunned)
             {
                 data.Movement = Vector2.zero;
@@ -169,7 +195,7 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
                     if (_playerAudio != null) _playerAudio.PlayJump(Runner.IsForward);
                 }
             }
-
+            
             _playerMovement.ProcessInput(data);
 
             if (_playerCombat != null) 
@@ -223,7 +249,6 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
         IsDead = true;
         _ncc.enabled = false;   
         
-        // Gọi âm thanh chết
         if (_playerAudio != null) _playerAudio.PlayDeath();
 
         if (_characterAnimation != null)
@@ -244,6 +269,24 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
     private void HandleInitialDeathState()
     {
         if (_playerHealth != null && _playerHealth.IsDead) HandleDeath();
+    }
+
+    // --- HÀM XỬ LÝ KHI ĂN VẬT PHẨM TĂNG TỐC ---
+    public void ApplySpeedBoost()
+    {
+        // Chỉ Host/Server mới được set State
+        if (Object.HasStateAuthority)
+        {
+            IsSpeedBoosted = true;
+            SpeedBoostTimer = TickTimer.CreateFromSeconds(Runner, 3f); 
+            
+            maxSpeed = _originalMaxSpeed * boostSpeedMultiplier;
+            
+            if (_playerMovement != null) 
+            {
+                _playerMovement.SetMaxSpeed(maxSpeed);
+            }
+        }
     }
 
     // Các Callbacks trống của Fusion

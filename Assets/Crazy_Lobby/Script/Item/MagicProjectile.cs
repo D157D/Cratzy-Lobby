@@ -10,6 +10,7 @@ namespace Crazy_Lobby.Item
     public class MagicProjectile : NetworkBehaviour
     {
         [Header("Spell Settings (Chế độ Kỹ năng)")]
+        public float freezeRadius = 5f;   // <-- THÊM: Bán kính tác dụng của phép thuật
         public float freezeDuration = 3f; 
         public int damageAmount = 1;      
         public GameObject iceBlockPrefab; 
@@ -48,18 +49,16 @@ namespace Crazy_Lobby.Item
 
                 if (HasStateAuthority)
                 {
-                    ExecuteGlobalFreeze(); // Kích hoạt đóng băng toàn map
+                    ExecuteAreaFreeze(); // <-- GỌI HÀM MỚI: Chỉ đóng băng khu vực gần
                     DespawnTimer = TickTimer.CreateFromSeconds(Runner, spellLifeTime);
                 }
             }
-            // (Nếu là Vật phẩm thì không làm gì lúc spawn, để FixedUpdate lo)
         }
 
         public override void FixedUpdateNetwork()
         {
             if (IsProjectile)
             {
-                // CHẾ ĐỘ KỸ NĂNG: Chờ hết giờ rồi biến mất
                 if (HasStateAuthority && DespawnTimer.Expired(Runner))
                 {
                     Runner.Despawn(Object);
@@ -67,7 +66,6 @@ namespace Crazy_Lobby.Item
             }
             else
             {
-                // CHẾ ĐỘ VẬT PHẨM: Nổi lơ lửng và xoay tròn tại chỗ
                 transform.Rotate(Vector3.up, rotateSpeed * Runner.DeltaTime);
                 float newY = _startPosition.y + Mathf.Sin(Runner.SimulationTime * floatSpeed) * floatAmplitude;
                 transform.position = new Vector3(transform.position.x, newY, transform.position.z);
@@ -78,42 +76,55 @@ namespace Crazy_Lobby.Item
         {
             if (!_isSpawnReady || !HasStateAuthority) return;
 
-            // Nếu đang là chiêu thức nổ rầm rầm thì không ai được nhặt!
             if (IsProjectile) return; 
 
-            // Xử lý người chơi lụm đồ
             var playerCombat = other.GetComponentInParent<PlayerCombat>();
             if (playerCombat != null)
             {
                 playerCombat.MagicCount += ammoAmount;
                 playerCombat.RPC_PickUpItem("Magic", ammoAmount); 
-                Runner.Despawn(Object); // Lụm xong thì xóa cục đồ
+                Runner.Despawn(Object); 
             }
         }
 
-
-        private void ExecuteGlobalFreeze()
+        // <-- HÀM ĐÃ ĐƯỢC CHỈNH SỬA
+        private void ExecuteAreaFreeze()
         {
             // Quét Người Chơi
             foreach (var player in PlayerController.ActivePlayers)
             {
                 if (player == null || player.IsDead || player.Object.Id == OwnerId) continue;
-                ApplyFreezeToTarget(player.gameObject, player.transform.position);
+                
+                // Kiểm tra khoảng cách
+                if (Vector3.Distance(transform.position, player.transform.position) <= freezeRadius)
+                {
+                    ApplyFreezeToTarget(player.gameObject, player.transform.position);
+                }
             }
 
             // Quét Quái Vật
             foreach (var enemy in EnemyAI.ActiveEnemies)
             {
                 if (enemy == null || enemy.IsDead || enemy.Object.Id == OwnerId) continue;
-                ApplyFreezeToTarget(enemy.gameObject, enemy.transform.position);
+                
+                // Kiểm tra khoảng cách
+                if (Vector3.Distance(transform.position, enemy.transform.position) <= freezeRadius)
+                {
+                    ApplyFreezeToTarget(enemy.gameObject, enemy.transform.position);
+                }
             }
         }
 
         private void ApplyFreezeToTarget(GameObject target, Vector3 position)
         {
             if (target.TryGetComponent<PlayerHealth>(out var health)) health.RPC_TakeDamage(damageAmount);
-            if (target.TryGetComponent<PlayerCombat>(out var combat)) combat.ApplyStun(freezeDuration);
+            if (target.TryGetComponent<PlayerCombat>(out var combat)) combat.ApplyStun(freezeDuration); 
             if (target.TryGetComponent<EnemyAI>(out var enemy)) enemy.RPC_TakeDamage(damageAmount);
+
+            if (target.TryGetComponent<NetworkObject>(out var targetNetObj))
+            {
+                RPC_PlayStunAnim(targetNetObj);
+            }
 
             RPC_ShowIceBlockLocal(position);
         }
@@ -125,6 +136,27 @@ namespace Crazy_Lobby.Item
             {
                 GameObject iceEffect = Instantiate(iceBlockPrefab, targetPosition, Quaternion.identity);
                 Destroy(iceEffect, freezeDuration); 
+            }
+        }
+
+        // <-- THÊM: Vẽ vòng tròn tầm ảnh hưởng trong Editor để dễ canh chỉnh
+        private void OnDrawGizmosSelected()
+        {
+            Gizmos.color = new Color(0f, 1f, 1f, 0.5f); // Màu Cyan trong suốt
+            Gizmos.DrawWireSphere(transform.position, freezeRadius);
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_PlayStunAnim(NetworkObject targetObj)
+        {
+            if (targetObj != null)
+            {
+                // Tìm Animator trên đối tượng mục tiêu thay vì tìm trên cục đạn
+                var animator = targetObj.GetComponentInChildren<Animator>();
+                if (animator != null) 
+                {
+                    animator.SetTrigger("die"); 
+                }
             }
         }
     }

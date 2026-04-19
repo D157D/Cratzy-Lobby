@@ -218,8 +218,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 52321fdc885dbc34784a91bcb35a3307, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  freezeRadius: 20
+  freezeDuration: 3
+  damageAmount: 1
   iceBlockPrefab: {fileID: 6743065442205148205}
+  spellLifeTime: 1
   castSound: {fileID: 8300000, guid: 9690d38ed140fd547908e40ab232f0e1, type: 3}
+  ammoAmount: 1
+  rotateSpeed: 90
+  floatSpeed: 2
+  floatAmplitude: 0.3
   _OwnerId:
     Raw: 0
 --- !u!82 &5480981521430241529

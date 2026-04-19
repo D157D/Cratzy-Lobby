@@ -7,6 +7,10 @@ public class StunItem : NetworkBehaviour
     public float duration = 3f;
     public LayerMask affectedLayers;
 
+    [Header("Hiệu ứng (VFX)")]
+    [Tooltip("Kéo Prefab tia sét vào đây. Prefab này BẮT BUỘC phải có NetworkObject")]
+    public NetworkObject lightningPrefab; 
+
     private void OnTriggerEnter(Collider other)
     {
         if (!Object.HasStateAuthority) return;
@@ -37,7 +41,18 @@ public class StunItem : NetworkBehaviour
                 // Không làm choáng chính người nhặt
                 if (targetNetObj != null && targetNetObj == picker) continue;
 
+                // 1. Gây choáng
                 stunnable.ApplyStun(duration);
+
+                // 2. GỌI SÉT ĐÁNH TẠI ĐÂY
+                if (lightningPrefab != null)
+                {
+                    // Tùy chỉnh vị trí: Cộng thêm Vector3.up để sét đánh trúng thân người thay vì dưới chân
+                    Vector3 strikePosition = t.transform.position + Vector3.up * 1.5f; 
+                    
+                    // Spawn tia sét đồng bộ trên toàn mạng
+                    Runner.Spawn(lightningPrefab, strikePosition, Quaternion.identity);
+                }
             }
         }
     }

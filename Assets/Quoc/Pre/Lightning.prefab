@@ -11,6 +11,8 @@ GameObject:
   - component: {fileID: 6090461873499203124}
   - component: {fileID: 415262109560707741}
   - component: {fileID: 4044685087421891038}
+  - component: {fileID: 6319518548761892794}
+  - component: {fileID: 9095575282390467439}
   m_Layer: 0
   m_Name: Lightning
   m_TagString: Untagged
@@ -86,3 +88,40 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &6319518548761892794
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 911371771138683085}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5726755994811491b84f1df826b38edc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  radius: 7
+  duration: 3
+  affectedLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  lightningPrefab: {fileID: 5935880082631382044, guid: d2b876535f2838740a1350517892a20c, type: 3}
+--- !u!114 &9095575282390467439
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 911371771138683085}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SortKey: 2743386541
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 6319518548761892794}
+  ForceRemoteRenderTimeframe: 0

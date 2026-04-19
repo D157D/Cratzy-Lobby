@@ -50,5 +50,14 @@ namespace Crazy_Lobby.Player.Components
             _characterAnimation.UpdateMoveAnimation(_ncc.Velocity, _ncc.maxSpeed);
             _characterAnimation.UpdateJumpState(_ncc.Grounded, _ncc.Velocity.y, _runner.DeltaTime);
         }
+
+        // Thêm hàm này vào class PlayerMovement để thay đổi tốc độ chạy
+        public void SetMaxSpeed(float newSpeed)
+        {
+            if (_ncc != null)
+            {
+                _ncc.maxSpeed = newSpeed; 
+            }
+        }
     }
 }

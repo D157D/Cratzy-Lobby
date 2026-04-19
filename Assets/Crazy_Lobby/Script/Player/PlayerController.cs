@@ -116,6 +116,16 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
     {
         if (IsDead) return;
 
+        if (TryGetComponent<PlayerCombat>(out var combat) && combat.IsStunned)
+        {
+            if (TryGetComponent<NetworkCharacterController>(out var ncc))
+            {
+                ncc.Move(Vector3.zero);
+            }
+            
+            return; 
+        }
+
         if (GetInput(out NetworkInputData data))
         {
             if (_stunStatus != null && _stunStatus.IsStunned)

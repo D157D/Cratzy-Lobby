@@ -1,8 +1,5 @@
 using Fusion;
 using UnityEngine;
-using Crazy_Lobby.Player.Components; // Hoặc thư viện chứa Enemy nếu cần
-// Nếu EnemyPatrol của bạn nằm ở thư mục khác, hãy thêm using vào đây, ví dụ:
-// using Crazy_Lobby.Enemy;
 
 namespace Crazy_Lobby.Player
 {
@@ -86,16 +83,10 @@ namespace Crazy_Lobby.Player
             }
         }
 
-        // 👉 HÀM KIỂM TRA MỤC TIÊU HỢP LỆ (NGƯỜI + QUÁI)
         private bool IsValidTarget(Collider col)
         {
-            // Bỏ qua chính bản thân mình
             if (col.transform.root == transform.root) return false;
-
-            // Kiểm tra xem có phải là Người chơi khác không
             if (col.GetComponentInParent<PlayerController>() != null) return true;
-
-            // Kiểm tra xem có phải là Quái vật không (Bao gồm cả 2 loại quái của bạn)
             if (col.GetComponentInParent<EnemyAI>() != null) return true;
             if (col.GetComponentInParent<EnemyPatrol>() != null) return true;
 
@@ -111,7 +102,6 @@ namespace Crazy_Lobby.Player
 
             foreach (var col in colliders)
             {
-                // Gọi hàm kiểm tra mục tiêu hợp lệ ở đây
                 if (!IsValidTarget(col)) continue;
 
                 Vector3 viewportPos = _mainCamera.WorldToViewportPoint(col.transform.position + targetOffset);
@@ -147,7 +137,6 @@ namespace Crazy_Lobby.Player
 
             foreach (var col in colliders)
             {
-                // Gọi hàm kiểm tra mục tiêu hợp lệ ở đây
                 if (!IsValidTarget(col)) continue;
 
                 float distanceSqr = (transform.position - col.transform.position).sqrMagnitude;

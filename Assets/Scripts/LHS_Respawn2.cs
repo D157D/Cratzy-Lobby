@@ -1,80 +1,29 @@
-using System.Collections;
-using System.Collections.Generic;
+using Fusion; // B·∫ÆT BU·ªòC C√ì ƒë·ªÉ d√πng NetworkCharacterController
 using UnityEngine;
 
 public class LHS_Respawn2 : MonoBehaviour
 {
-    [SerializeField] float spawnValue;
-    [SerializeField] GameObject player;
-
-    //[SerializeField] private Transform player;
     [SerializeField] Transform respawnPoint;
 
-    //∂≥æÓ¡≥¿ª∂ß ±∏«ˆ¿ª ¿ß«—
-    Animator anim;
-
-    private RaycastHit hit;
-    private int layerMask;
-    public float distance = 10;
-    AudioSource resp;
-
-    void Awake()
-    {
-        anim = player.GetComponentInChildren<Animator>();
-        layerMask = 1 << 7;
-        resp = GetComponent<AudioSource>();
-    }
-
-    private void FixedUpdate()
-    {
-        /*
-        if (player.transform.position.y < -spawnValue)
-        {
-            DownPlayer();
-        }
-        */
-        
-        // «√∑π¿ÃæÓ∏¶ ±‚¡ÿ¿∏∑Œ ∑π¿Ã∏¶ Ω˙¥¬µ•
-        // RespawnTrigger∂˚ ∞≈∏Æ∞° Distance ¬˜¿Ã∂Û∏È
-        // DownPlayer∏¶ Ω««‡ Ω√≈∞∞Ì ΩÕ¥Ÿ
-        // DownPlayer æ÷¥œ∏ﬁ¿Ãº«µµ Ω««‡Ω√≈∞∞Ì ΩÕ¥Ÿ.
-
-        if (Physics.Raycast(player.transform.position, -player.transform.up, out hit, distance, layerMask))
-        {
-            //RespSound();
-            DownPlayer();
-            resp.Play();
-        }
-        
-    }
-
-    void DownPlayer()
-    {
-        anim.SetBool("isFalling", true);
-        //resp.Play();
-    }
-
-    // RaspawnTriggerø° √Êµπ«ﬂ¿ª∂ß ∏ÆΩ∫∆˘ ¡ˆ¡°¿∏∑Œ µπæ∆∞°∞Ì ΩÕ¥Ÿ
-    // æ÷¥œ∏ﬁ¿Ãº«µµ ≤Ù∞Ì ΩÕ¥Ÿ.
     private void OnTriggerEnter(Collider other)
     {
-        if(other.CompareTag("Player"))
+        // 1. Ki·ªÉm tra xem ai v·ª´a r·ªõt xu·ªëng
+        if (other.CompareTag("Player") || other.CompareTag("Enemy"))
         {
-
+            // 2. T√¨m component ƒëi·ªÅu khi·ªÉn m·∫°ng (D√πng GetComponentInParent ƒë·ªÅ ph√≤ng Collider n·∫±m ·ªü object con)
+            var ncc = other.GetComponentInParent<NetworkCharacterController>();
             
-            anim.SetBool("isFalling", false);
-
-            player.transform.position = respawnPoint.transform.position;
-            //player.transform.GetChild(0).transform.position = new Vector3(0, 0.09f, 0);
-            // ∫Ø»Ø∫Ø∞ÊªÁ«◊¿ª π∞∏Æø£¡¯ø° ¿˚øÎ
-            //Physics.SyncTransforms();
-            
+            if (ncc != null)
+            {
+                // 3. D·ªãch chuy·ªÉn chu·∫©n x√°c b·∫±ng l·ªánh Teleport c·ªßa Fusion
+                ncc.Teleport(respawnPoint.position);
+                Debug.Log($"ƒê√£ c·ª©u {other.name} v·ªÅ ƒëi·ªÉm Respawn!");
+            }
+            else
+            {
+                // Backup: N·∫øu r·ªõt xu·ªëng l√† m·ªôt object offline b√¨nh th∆∞·ªùng kh√¥ng c√≥ m·∫°ng
+                other.transform.position = respawnPoint.position;
+            }
         }
     }
-    /*public void RespSound()
-    {
-        AudioSource resp = GetComponent<AudioSource>();
-        resp.Play();
-    }
-    */
 }

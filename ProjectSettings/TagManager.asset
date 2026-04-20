@@ -5,6 +5,12 @@ TagManager:
   serializedVersion: 3
   tags:
   - Ground
+  - FxTemporaire
+  - Wall
+  - Waypoint
+  - Waypointt
+  - Enemy
+  - MagicPickup
   layers:
   - Default
   - TransparentFX

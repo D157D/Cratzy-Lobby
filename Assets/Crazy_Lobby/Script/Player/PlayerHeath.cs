@@ -24,13 +24,15 @@ public class PlayerHealth : NetworkBehaviour
 
     private ChangeDetector _changeDetector;
 
+    [SerializeField] private int _initialMaxHealth = 3;
+
     public override void Spawned()
     {
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
 
         if (HasStateAuthority)
         {
-            var hp = new PlayerHealthStruct { maxHealth = 5, currentHealth = 5 };
+            var hp = new PlayerHealthStruct { maxHealth = _initialMaxHealth, currentHealth = _initialMaxHealth };
             playerHealthStruct = hp;
         }
 
@@ -80,22 +82,34 @@ public class PlayerHealth : NetworkBehaviour
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     public void RPC_TakeDamage(int damage)
     {
-        if (IsDead) return;
+        // Debug.Log($"[PlayerHealth] RPC_TakeDamage được gọi trên {Object.Id} với sát thương: {damage}. IsDead: {IsDead}");
+
+        if (IsDead)
+        {
+            // Debug.Log($"[PlayerHealth] Người chơi {Object.Id} đã chết, bỏ qua sát thương.");
+            return;
+        }
 
         var hp = playerHealthStruct;
+        // Debug.Log($"[PlayerHealth] Máu hiện tại của {Object.Id} trước khi nhận sát thương: {hp.currentHealth}/{hp.maxHealth}");
         hp.currentHealth -= damage;
         if (hp.currentHealth < 0) hp.currentHealth = 0;
         playerHealthStruct = hp;
+        // Debug.Log($"[PlayerHealth] Máu hiện tại của {Object.Id} sau khi nhận sát thương: {playerHealthStruct.currentHealth}/{playerHealthStruct.maxHealth}");
 
         if (playerHealthStruct.currentHealth <= 0 && !IsDead)
         {
+            // Debug.Log($"[PlayerHealth] Người chơi {Object.Id} hết máu. Đang chuyển trạng thái sang chết.");
             IsDead = true;
             Die();
         }
     }
-
+    void HealthChangedCallback()
+    {
+        OnHealthUpdated?.Invoke(playerHealthStruct.currentHealth, playerHealthStruct.maxHealth);
+    }
     private void Die()
     {
-        Debug.Log($"Player {Object.Id} died on server.");
+        // Debug.Log($"Player {Object.Id} died on server.");
     }
 }

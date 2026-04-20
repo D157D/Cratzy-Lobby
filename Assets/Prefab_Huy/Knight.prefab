@@ -145,8 +145,6 @@ GameObject:
   - component: {fileID: 1450133161821559963}
   - component: {fileID: 1507679366625374536}
   - component: {fileID: 3554438491683025868}
-  - component: {fileID: 3347482720067501883}
-  - component: {fileID: 5390510403536194428}
   m_Layer: 0
   m_Name: Knight
   m_TagString: Player
@@ -297,7 +295,6 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 3554438491683025868}
-  - {fileID: 3347482720067501883}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &3554438491683025868
 MonoBehaviour:
@@ -316,34 +313,6 @@ MonoBehaviour:
   SyncParent: 0
   _autoAOIOverride: 1
   DisableSharedModeInterpolation: 0
---- !u!114 &3347482720067501883
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1157365165578232707}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 63864e33bd857f6488114633eb55bc8b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  character: {fileID: 1796919699473090319}
-  animator: {fileID: 2096771897296043381}
---- !u!114 &5390510403536194428
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1157365165578232707}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 1541381998, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Guid:
-    RawGuidValue: 5f7ddf968add9644886366c6144b07b8
 --- !u!1 &1355129355185601713
 GameObject:
   m_ObjectHideFlags: 0

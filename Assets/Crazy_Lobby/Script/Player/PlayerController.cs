@@ -2,21 +2,27 @@ using System;
 using System.Collections.Generic;
 using Crazy_Lobby.Player;
 using Crazy_Lobby.Player.Components;
-using Crazy_Lobby.Item;
 using Crazy_Lobby.UI;
 using Fusion;
 using Fusion.Sockets;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
+
 public struct NetworkInputData : INetworkInput
 {
     public Vector2 Movement;
     public float CameraYaw;
     public NetworkBool Jump;
     public NetworkBool UseItem;
+    public NetworkBool Magic;
 }
+
 [RequireComponent(typeof(NetworkCharacterController))]
 [RequireComponent(typeof(NetworkObject))]
+[RequireComponent(typeof(PlayerCombat))] 
+[RequireComponent(typeof(PlayerAudio))]  
+[RequireComponent(typeof(StunStatus))]
 public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
 {
     [Header("Movement Settings")]
@@ -25,33 +31,42 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
     private float acceleration = 100f; 
     private float braking = 100f; 
 
+    [Header("Boost Settings")]
+    public float boostSpeedMultiplier = 2f; // Tốc độ nhân lên khi ăn vật phẩm
+    private float _originalMaxSpeed;
+    [Networked] public TickTimer SpeedBoostTimer { get; set; }
+    [Networked] public NetworkBool IsSpeedBoosted { get; set; }
+
     [Header("Interaction Settings")]
     public LayerMask platformLayer; 
-
-    [Header("Item Settings")]
-    private float itemCooldown = 3f;
 
     private NetworkCharacterController _ncc;
     private CharacterAnimation _characterAnimation;
     private PlayerMovement _playerMovement;
     private PlayerInteraction _playerInteraction;
-    private PlayerItemUsage _playerItemUsage;
     private PlayerHealth _playerHealth;
+    private PlayerCombat _playerCombat;
+    private PlayerAudio _playerAudio;
 
     private Vector2 _localMoveInput; 
     private bool _jumpPressed;
     private bool _useItemPressed;
+    private bool _magicPressed;
+    private StunStatus _stunStatus;
 
-    [Networked] private TickTimer ItemCooldownTimer { get; set; }
-    
+    public bool IsInLobby => SceneManager.GetActiveScene().name == "Login_Crazy"; 
     public NetworkId CurrentTargetId { get; internal set; }
     public bool IsDead { get; internal set; }
-     public static readonly List<PlayerController> ActivePlayers = new List<PlayerController>();
+    [Networked] public bool HasFinished { get; set; }
+    public static readonly List<PlayerController> ActivePlayers = new List<PlayerController>();
 
     private void Awake()
     {
         _ncc = GetComponent<NetworkCharacterController>();
         _playerHealth = GetComponent<PlayerHealth>();
+        _playerCombat = GetComponent<PlayerCombat>();
+        _playerAudio = GetComponent<PlayerAudio>();
+        _stunStatus = GetComponent<StunStatus>();
         _characterAnimation = new CharacterAnimation(GetComponentInChildren<Animator>());
     }
   
@@ -59,22 +74,21 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
     {
         ActivePlayers.Add(this);
 
-        if (_playerHealth != null)
-        {
-            _playerHealth.OnDeath += HandleDeath;
-        }
+        // Lưu lại tốc độ gốc để reset sau khi hết thời gian boost
+        _originalMaxSpeed = maxSpeed;
+
+        if (_playerHealth != null) _playerHealth.OnDeath += HandleDeath;
         HandleInitialDeathState();
 
-        // Initialize player components
         _playerMovement = new PlayerMovement(_ncc, _characterAnimation, transform, Runner, jumpForce, maxSpeed, acceleration, braking);
         _playerInteraction = new PlayerInteraction(Object, transform, platformLayer);
-        _playerItemUsage = new PlayerItemUsage(this);
+        
+        _playerCombat.Initialize(this, _playerAudio);
 
         if (HasInputAuthority)
         {
             Runner.AddCallbacks(this);
 
-            // Tắt và bật lại PlayerInput để ép Unity kết nối lại với thiết bị (bàn phím/chuột) của Client
             PlayerInput playerInput = GetComponent<PlayerInput>();
             if (playerInput != null)
             {
@@ -82,69 +96,111 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
                 playerInput.enabled = true;
             }
             
-            // Tìm script Menu (kể cả khi GameObject đang ẩn) và tắt _CrazyLobby
             Menu menu = FindObjectOfType<Menu>(true);
             if (menu != null && menu._CrazyLobby != null)
             {
                 menu._CrazyLobby.SetActive(false);
             }
         }
-            else
-            {
-                // Tắt PlayerInput trên các nhân vật của người chơi khác (Proxy)
-                // để tránh việc chúng giành quyền điều khiển bàn phím/chuột của máy bạn
-                PlayerInput playerInput = GetComponent<PlayerInput>();
-                if (playerInput != null)
-                {
-                    playerInput.enabled = false;
-                }
-            }
+        else
+        {
+            PlayerInput playerInput = GetComponent<PlayerInput>();
+            if (playerInput != null) playerInput.enabled = false;
+        }
     }
 
     public override void Despawned(NetworkRunner runner, bool hasState)
     {
         ActivePlayers.Remove(this);
+        if (_playerHealth != null) _playerHealth.OnDeath -= HandleDeath;
+        if (HasInputAuthority) Runner.RemoveCallbacks(this);
+    }
 
-        if (_playerHealth != null)
+    public void OnMove(InputValue value) { _localMoveInput = value.Get<Vector2>(); }
+    public void OnJump(InputValue value) { if (value.isPressed) _jumpPressed = true; }
+    public void OnUseItem(InputValue value) { if (value.isPressed) _useItemPressed = true; }
+    public void OnMagic(InputValue value) { if (value.isPressed) _magicPressed = true; }
+
+    public void SetFinished()
+    {
+        if (Object.HasStateAuthority)
         {
-            _playerHealth.OnDeath -= HandleDeath;
+            HasFinished = true;
+            RPC_NotifyFinished();
         }
+    }
 
-        if (HasInputAuthority)
+    [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
+    private void RPC_NotifyFinished()
+    {
+        if (CountdownController.Instance != null)
         {
-            Runner.RemoveCallbacks(this);
+            CountdownController.Instance.TriggerLocalVictorySequence();
         }
-    }
-
-    public void OnMove(InputValue value)
-    {
-        _localMoveInput = value.Get<Vector2>();
-    }
-
-    public void OnJump(InputValue value)
-    {
-        if (value.isPressed) _jumpPressed = true;
-    }
-
-    public void OnUseItem(InputValue value)
-    {
-        Debug.Log("1. Unity đã nhận tín hiệu bấm phím E!");
-        if (value.isPressed) _useItemPressed = true;
     }
 
     public override void FixedUpdateNetwork()
     {
         if (IsDead) return;
+        
+        if(!IsInLobby)
+        {
+            if(!CountdownController.IsGameStarted || HasFinished)
+            {
+                _ncc.Move(Vector3.zero);
+                return;
+            }
+        }
+
+        // --- XỬ LÝ BOOST TỐC ĐỘ BẰNG TICKTIMER CỦA FUSION ---
+        if (IsSpeedBoosted)
+        {
+            if (SpeedBoostTimer.Expired(Runner))
+            {
+                IsSpeedBoosted = false;
+                maxSpeed = _originalMaxSpeed;
+                
+                if (_playerMovement != null) 
+                {
+                    _playerMovement.SetMaxSpeed(maxSpeed);
+                }
+            }
+        }
+        // ---------------------------------------------------
+
+        if (TryGetComponent<PlayerCombat>(out var combat) && combat.IsStunned)
+        {
+            if (TryGetComponent<NetworkCharacterController>(out var ncc))
+            {
+                ncc.Move(Vector3.zero);
+            }
+            
+            return; 
+        }
 
         if (GetInput(out NetworkInputData data))
         {
+           
+            if (_stunStatus != null && _stunStatus.IsStunned)
+            {
+                data.Movement = Vector2.zero;
+                data.Jump = false;
+                data.UseItem = false;
+                data.Magic = false;
+            }
+            else 
+            {
+                if (data.Jump && _ncc.Grounded) 
+                {
+                    if (_playerAudio != null) _playerAudio.PlayJump(Runner.IsForward);
+                }
+            }
+            
             _playerMovement.ProcessInput(data);
 
-            if (data.UseItem && ItemCooldownTimer.ExpiredOrNotRunning(Runner))
+            if (_playerCombat != null) 
             {
-                Debug.Log("2. Gửi lệnh sử dụng vật phẩm lên mạng (Đã qua bước hồi chiêu)");
-                _playerItemUsage.UseFirework();
-                ItemCooldownTimer = TickTimer.CreateFromSeconds(Runner, itemCooldown);
+                _playerCombat.ProcessCombatInput(data, IsInLobby, _characterAnimation);
             }
         }
 
@@ -155,62 +211,58 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
     {
         if (IsDead) return;
 
+        if (_characterAnimation != null && _characterAnimation.GetAnimator() == null)
+        {
+            var animator = GetComponentInChildren<Animator>();
+            if (animator != null) _characterAnimation.SetAnimator(animator);
+        }
+
         _playerMovement.UpdateAnimations();
     }
+
     public void OnInput(NetworkRunner runner, NetworkInput input)
     {
         var data = new NetworkInputData();
         data.Movement = _localMoveInput;
 
-        if (UnityEngine.Camera.main != null)
+        if (Camera.main != null)
         {
-            var customCamera = UnityEngine.Camera.main.GetComponent<CameraP>();
-            if (customCamera != null)
-            {
-                data.CameraYaw = customCamera.CurrentYaw;
-            }
-            else
-            {
-                data.CameraYaw = UnityEngine.Camera.main.transform.eulerAngles.y;
-            }
+            var customCamera = Camera.main.GetComponent<CameraP>();
+            if (customCamera != null) data.CameraYaw = customCamera.CurrentYaw;
+            else data.CameraYaw = Camera.main.transform.eulerAngles.y;
         }
 
         data.Jump = _jumpPressed;
         data.UseItem = _useItemPressed;
+        data.Magic = _magicPressed;
 
         input.Set(data); 
         _jumpPressed = false;
         _useItemPressed = false;
-    }
-
-    [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
-    public void RPC_PickUpItem(string itemName, int amount)
-    {
-        Debug.Log($"Bạn vừa nhặt được: {amount} {itemName}");
-        
-        if(ItemUIManager.Instance != null)
-        {
-            ItemUIManager.Instance.ShowItemPickup(itemName, amount);
-        }
+        _magicPressed = false;
     }
 
     private void HandleDeath()
     {
-        if (IsDead) return; // Already dead, do nothing.
+        if (IsDead) return;
 
         IsDead = true;
-        _ncc.enabled = false; // Disable character controller to stop movement
+        _ncc.enabled = false;   
+        
+        if (_playerAudio != null) _playerAudio.PlayDeath();
 
-        // TODO: Play death animation via _characterAnimation
-        Debug.Log($"Player {Object.Id} handling death on client.");
+        if (_characterAnimation != null)
+        {
+            if (_characterAnimation.GetAnimator() == null)
+                _characterAnimation.SetAnimator(GetComponentInChildren<Animator>());
+                
+            _characterAnimation.TriggerDeath();
+        }
 
         if (HasInputAuthority)
         {
-            var cam = UnityEngine.Camera.main.GetComponent<CameraP>();
-            if (cam != null)
-            {
-                cam.OnPlayerDied();
-            }
+            var cam = Camera.main.GetComponent<CameraP>();
+            if (cam != null) cam.OnPlayerDied();
         }
     }
 
@@ -219,76 +271,41 @@ public class PlayerController : NetworkBehaviour , INetworkRunnerCallbacks
         if (_playerHealth != null && _playerHealth.IsDead) HandleDeath();
     }
 
-    public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
+    // --- HÀM XỬ LÝ KHI ĂN VẬT PHẨM TĂNG TỐC ---
+    public void ApplySpeedBoost()
     {
+        // Chỉ Host/Server mới được set State
+        if (Object.HasStateAuthority)
+        {
+            IsSpeedBoosted = true;
+            SpeedBoostTimer = TickTimer.CreateFromSeconds(Runner, 3f); 
+            
+            maxSpeed = _originalMaxSpeed * boostSpeedMultiplier;
+            
+            if (_playerMovement != null) 
+            {
+                _playerMovement.SetMaxSpeed(maxSpeed);
+            }
+        }
     }
 
-    public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
-    {
-    }
-
-    public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
-    {
-    }
-
-    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
-    {
-    }
-
-    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
-    {
-        PlayerPrefs.Save();
-    }
-
-    public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
-    {
-    }
-
-    public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token)
-    {
-    }
-
-    public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason)
-    {
-    }
-
-    public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message)
-    {
-    }
-
-    public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data)
-    {
-    }
-
-    public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress)
-    {
-    }
-
-    public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input)
-    {
-    }
-
-    public void OnConnectedToServer(NetworkRunner runner)
-    {
-    }
-
-    public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
-    {
-    }
-
-    public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data)
-    {
-    }
-
-    public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken)
-    {
-    }
-
-    public void OnSceneLoadDone(NetworkRunner runner)
-    {
-    }
-
-    public void OnSceneLoadStart(NetworkRunner runner)
-    {
-    }
+    // Các Callbacks trống của Fusion
+    public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
+    public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
+    public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) { }
+    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }
+    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { PlayerPrefs.Save(); }
+    public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason) { }
+    public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) { }
+    public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason) { }
+    public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) { }
+    public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data) { }
+    public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress) { }
+    public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
+    public void OnConnectedToServer(NetworkRunner runner) { }
+    public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList) { }
+    public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data) { }
+    public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken) { }
+    public void OnSceneLoadDone(NetworkRunner runner) { }
+    public void OnSceneLoadStart(NetworkRunner runner) { }
 }

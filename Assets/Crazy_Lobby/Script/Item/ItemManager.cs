@@ -7,10 +7,10 @@ namespace Crazy_Lobby.Item
     {
         public static ItemManager Instance { get; private set; }
         public NetworkPrefabRef fireworkProjectilePrefab;
+        public NetworkPrefabRef Magic;
 
         private void Awake()
         {
-            // Thiết lập Singleton
             if (Instance == null)
             {
                 Instance = this;
@@ -19,6 +19,7 @@ namespace Crazy_Lobby.Item
             {
                 Destroy(gameObject);
             }
+            DontDestroyOnLoad(gameObject);  
         }
     }
 }

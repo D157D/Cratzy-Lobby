@@ -82,28 +82,29 @@ namespace Crazy_Lobby.UI
             string savedUser = PlayerPrefs.GetString("SavedUsername", "");
             string savedPass = PlayerPrefs.GetString("SavedPassword", "");
 
-            if (!string.IsNullOrEmpty(savedUser) && !string.IsNullOrEmpty(savedPass))
-            {
-                if (_GameName != null)
-                {
-                    _GameName.anchoredPosition = gameNameTargetPos;
-                    _GameName.localScale = gameNameTargetScale;
-                }
+            // if (!string.IsNullOrEmpty(savedUser) && !string.IsNullOrEmpty(savedPass))
+            // {
+            //     if (_GameName != null)
+            //     {
+            //         _GameName.anchoredPosition = gameNameTargetPos;
+            //         _GameName.localScale = gameNameTargetScale;
+            //     }
 
-                Debug.Log("Phát hiện tài khoản đã lưu, đang tự động đăng nhập...");
-                if (BackendManager.Instance != null)
-                {
-                    BackendManager.Instance.Login(savedUser, savedPass, (isSuccess, message) => 
-                    {
-                        if (isSuccess) ShowRoomPanel();
-                        else ShowLoginPanel();
-                    });
-                }
-            }
-            else
-            {
-                StartCoroutine(AnimateGameName());
-            }
+            //     Debug.Log("Phát hiện tài khoản đã lưu, đang tự động đăng nhập...");
+            //     if (BackendManager.Instance != null)
+            //     {
+            //         BackendManager.Instance.Login(savedUser, savedPass, (isSuccess, message) => 
+            //         {
+            //             if (isSuccess) ShowRoomPanel();
+            //             else ShowLoginPanel();
+            //         });
+            //     }
+            // }
+            // else
+            // {
+            //     StartCoroutine(AnimateGameName());
+            // }
+            StartCoroutine(AnimateGameName());
         }
 
         private IEnumerator AnimateGameName()

@@ -218,7 +218,7 @@ public class BootstrapUIManager : MonoBehaviour
 
         if (isShow && loadingTimeText != null)
         {
-            loadingTimeText.text = "Đang kết nối: 0.0s...";
+            loadingTimeText.text = "Connecting: 0.0s...";
         }
     }
 
@@ -226,7 +226,7 @@ public class BootstrapUIManager : MonoBehaviour
     {
         if (loadingTimeText != null)
         {
-            loadingTimeText.text = $"Đang kết nối: {timeElapsed:F1}s...";
+            loadingTimeText.text = $"Connecting: {timeElapsed:F1}s...";
         }
     }
 }

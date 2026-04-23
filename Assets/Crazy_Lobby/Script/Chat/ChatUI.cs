@@ -21,6 +21,7 @@ public class ChatUI : MonoBehaviour
 
     private List<GameObject> _displayedMessages = new List<GameObject>();
     private bool _isChatOpen = false;
+    private bool _isSubscribed = false;
 
     private void Start()
     {
@@ -38,34 +39,27 @@ public class ChatUI : MonoBehaviour
             chatPanel.SetActive(false);
             _isChatOpen = false;
         }
-    }
 
-    private void OnEnable()
-    {
-        if (ChatManager.Instance != null)
+        // Khởi động Runner ngầm ngay khi vào scene để tránh bị chậm khi mở chat
+        if (ChatLobbyRunner.Instance != null)
         {
-            ChatManager.Instance.OnMessageReceived += OnNewMessage;
+            ChatLobbyRunner.Instance.StartLobbyChat();
         }
-    }
-
-    private void OnDisable()
-    {
-        if (ChatManager.Instance != null)
+        else
         {
-            ChatManager.Instance.OnMessageReceived -= OnNewMessage;
+            Debug.LogWarning("[ChatUI] ChatLobbyRunner chưa có trong scene. Hãy thêm GameObject với component ChatLobbyRunner.");
         }
     }
 
     private void Update()
     {
+        // Đăng ký sự kiện an toàn 1 lần duy nhất khi ChatManager đã sẵn sàng
         if (ChatManager.Instance != null && !_isSubscribed)
         {
             ChatManager.Instance.OnMessageReceived += OnNewMessage;
             _isSubscribed = true;
         }
     }
-
-    private bool _isSubscribed = false;
 
     public void ToggleChat()
     {
@@ -80,16 +74,6 @@ public class ChatUI : MonoBehaviour
             {
                 chatInputField.ActivateInputField();
                 chatInputField.Select();
-            }
-
-            // Tự động kết nối Fusion Runner nếu chưa kết nối
-            if (ChatLobbyRunner.Instance != null)
-            {
-                ChatLobbyRunner.Instance.StartLobbyChat();
-            }
-            else
-            {
-                Debug.LogWarning("[ChatUI] ChatLobbyRunner chưa có trong scene. Hãy thêm GameObject với component ChatLobbyRunner.");
             }
         }
     }
@@ -124,7 +108,6 @@ public class ChatUI : MonoBehaviour
         chatInputField.ActivateInputField();
         chatInputField.Select();
     }
-
 
     private void OnNewMessage(ChatMessageData messageData)
     {
@@ -162,6 +145,7 @@ public class ChatUI : MonoBehaviour
 
         _displayedMessages.Add(msgObj);
 
+        // Xóa tin nhắn cũ nếu vượt quá giới hạn
         while (_displayedMessages.Count > maxDisplayMessages)
         {
             GameObject oldMsg = _displayedMessages[0];
@@ -181,8 +165,12 @@ public class ChatUI : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (ChatManager.Instance != null)
+        // Hủy đăng ký sự kiện an toàn
+        if (ChatManager.Instance != null && _isSubscribed)
+        {
             ChatManager.Instance.OnMessageReceived -= OnNewMessage;
+            _isSubscribed = false;
+        }
 
         if (sendButton != null)
             sendButton.onClick.RemoveListener(OnSendButtonClicked);

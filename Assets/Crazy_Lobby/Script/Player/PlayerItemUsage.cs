@@ -1,0 +1,139 @@
+using Crazy_Lobby.Item;
+using Fusion;
+using UnityEngine;
+using Crazy_Lobby.Enemy;
+
+namespace Crazy_Lobby.Player.Components
+{
+    public class PlayerItemUsage
+    {
+        private readonly PlayerController _player;
+        private readonly float _targetingRange = 50f;
+
+        public PlayerItemUsage(PlayerController player)
+        {
+            _player = player;
+        }
+
+        public void UseFirework()
+        {
+            if (!_player.HasStateAuthority) return;
+
+            NetworkId targetId = FindClosestTarget();
+
+            if (!targetId.IsValid)
+            {
+                return;
+            }
+
+            if (ItemManager.Instance != null && ItemManager.Instance.fireworkProjectilePrefab.IsValid)
+            {
+                Quaternion randomRot = Quaternion.Euler(
+                    Random.Range(-30f, 30f),
+                    Random.Range(0f, 360f),
+                    Random.Range(-30f, 30f)
+                );
+
+                _player.Runner.Spawn(
+                    ItemManager.Instance.fireworkProjectilePrefab,
+                    _player.transform.position + Vector3.up,
+                    randomRot,
+                    _player.Object.StateAuthority,
+                    (runner, obj) =>
+                    {
+                        var firework = obj.GetComponent<FireworkProjectile>();
+                        if (firework != null)
+                        {
+                            firework.TargetId = targetId;
+                            firework.OwnerId = _player.Object.Id;
+                        }
+                    });
+            }
+            else
+            {
+                Debug.LogError("LỖI: Không tìm thấy ItemManager hoặc chưa gắn Prefab Firework!");
+            }
+        }
+
+        public void UseMagic()
+        {
+            if (!_player.HasStateAuthority) return;
+
+            if (ItemManager.Instance != null && ItemManager.Instance.Magic.IsValid)
+            {
+                Vector3 spawnPos = _player.transform.position + Vector3.down * 10f;
+
+                Quaternion spawnRot = _player.transform.rotation;
+
+                _player.Runner.Spawn(
+                    ItemManager.Instance.Magic,
+                    spawnPos,
+                    spawnRot,
+                    _player.Object.StateAuthority,
+                    (runner, obj) =>
+                    {
+                        var magic = obj.GetComponent<MagicProjectile>();
+                        if (magic != null)
+                        {
+                            magic.OwnerId = _player.Object.Id;
+                        }
+                    });
+            }
+            else
+            {
+                Debug.LogWarning("Chưa gắn prefab Magic trong ItemManager!");
+            }
+        }
+
+        private NetworkId FindClosestTarget()
+        {
+            float closestDistSqr = float.MaxValue;
+            NetworkObject closestObj = null;
+
+            // Player
+            foreach (var p in PlayerController.ActivePlayers)
+            {
+                if (p == null || p.Object == _player.Object || p.IsDead) continue;
+
+                float distSqr = (_player.transform.position - p.transform.position).sqrMagnitude;
+                if (distSqr < closestDistSqr && distSqr < _targetingRange * _targetingRange)
+                {
+                    closestDistSqr = distSqr;
+                    closestObj = p.Object;
+                }
+            }
+
+            // Enemy (FIXED)
+            foreach (var e in EnemyAI.ActiveEnemies)
+            {
+                if (e == null || e.Object == null || e.Object.Id == _player.Object.Id) continue;
+
+                var health = e.GetComponent<PlayerHealth>();
+                if (health != null && health.IsDead) continue;
+
+                float distSqr = (_player.transform.position - e.transform.position).sqrMagnitude;
+                if (distSqr < closestDistSqr && distSqr < _targetingRange * _targetingRange)
+                {
+                    closestDistSqr = distSqr;
+                    closestObj = e.Object;
+                }
+            }
+            foreach (var e in EnemyPatrol.ActiveLobbyEnemies)
+            {
+                if (e == null || e.Object == null || e.Object.Id == _player.Object.Id) continue;
+
+                var health = e.GetComponent<PlayerHealth>();
+                if (health != null && health.IsDead) continue;
+
+                float distSqr = (_player.transform.position - e.transform.position).sqrMagnitude;
+                if (distSqr < closestDistSqr && distSqr < _targetingRange * _targetingRange)
+                {
+                    closestDistSqr = distSqr;
+                    closestObj = e.Object;
+                }
+            }
+
+            return closestObj != null ? closestObj.Id : default;
+        }
+    }
+}
